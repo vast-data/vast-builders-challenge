@@ -103,5 +103,11 @@ These aren't actions, so don't route to a skill — read and answer from the doc
    so the user or agent can load it immediately.
 4. If nothing matches, don't invent an answer: skim `BUILD_DAY.md` or the relevant
    group `README.md` under `.cursor/skills/`, then answer from what's actually there.
-5. Never execute the target skill yourself unless the user's next message is the
+5. If it still doesn't match anything — this table doesn't update itself when a skill
+   is added — list `.cursor/skills/*/SKILL.md` and `.cursor/skills/*/*/SKILL.md`
+   directly and read the frontmatter `description` of any skill not already covered
+   above. A skill that didn't exist when this file was last edited won't be in the
+   table or necessarily in `BUILD_DAY.md` either; its own `SKILL.md` is still the
+   source of truth and is always current.
+6. Never execute the target skill yourself unless the user's next message is the
    concrete task — this skill's job ends at pointing the way.
