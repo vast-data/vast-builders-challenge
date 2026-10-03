@@ -56,11 +56,30 @@ If step 1 or 2 fails, see "Is everything working?" below.
 | Are the GPU models (reasoning/embedding/detection) up? | `gpu/model-health` | Liveness/readiness per model, using each model's real health path |
 | Health looks fine but reasoning/embeddings/detections are empty | `gpu/model-smoke-test` | Minimal real inference call per model to isolate the failure |
 | How do I deploy my own app / mini-app / dashboard on top of this? | `deployment/deploy-app-no-registry` | On-cluster app at `/app` on the team host, no Docker build/push needed |
+| How do I access my app once it's deployed? / it's not loading | *(see "Internal vs external URL" below)* — not a skill, not a redeploy | Two valid URLs for the same app; use the external one |
 | How do I deploy or redeploy the retrieval stack itself? | `deployment/build-yamls` then `deployment/deploy` | Fill secrets/image tags, then `QUICK_DEPLOY.sh` — not needed for most teams, the stack is already up |
 | Is everything working? / is the deployment healthy? | `deployment/health` | `kubectl get pods`, backend `/health`, effective config |
 | Something's broken and I need help | `ask-cosmos` | Runs the health check, triages the common causes, drafts a help note — never posts it |
 | How do I submit our project? | `submission` | Walks each section, writes `SUBMISSION.md` |
 | What skills exist / what can this repo do? | *(this table)*, or the group `README.md` files under `.cursor/skills/*/README.md` | — |
+
+## Internal vs external URL (deployed apps)
+
+Once `deployment/deploy-app-no-registry` finishes, the app is reachable at **two** URLs.
+Don't treat one as broken just because the other works — they're the same app.
+
+| URL | Works from | Use it when |
+|---|---|---|
+| `http://video-lab-team-<N>.cosmos.vastdata.com/app/` | Inside the workshop VM only | This is the real Ingress host the deploy skill configures. It's correct as-is — never change it, and it's expected not to load from outside the VM. |
+| `https://team-<N>-app.thecosmoslabs.com/app/` | Your own laptop, anywhere | **Recommended for demos and day-to-day use.** Goes through Cloudflare and loads noticeably faster than tunneling through the VM. |
+
+Swap `<N>` for your team number in both. If someone says "my app isn't loading," ask
+which URL they used before assuming the deploy itself failed — most of the time it's
+just the VM-internal one being tried from a laptop, or vice versa.
+
+This is purely about *which address to open in a browser* — it doesn't change how the
+app is deployed or verified, so `deployment/deploy-app-no-registry` itself is unchanged
+and still built around the internal host.
 
 ## Questions that need the docs, not a skill
 
