@@ -14,6 +14,27 @@ A running, append-only transcript of what the team actually typed to Cursor, wri
 the repo so it travels with the submission. Not a summary, not a cleaned-up version —
 the literal prompt, minus anything that looks like a credential.
 
+## Where this file lives — read this before writing anything
+
+Most teams do **not** build their actual project inside this skills repo
+(`~/vast-builders-challenge`). They work from their own project directory elsewhere,
+and get these skills through the global rule that tells every chat to treat
+`~/vast-builders-challenge/.cursor/rules/` as in force no matter where the session was
+started. That's by design — it's how a team with its own repo still gets `ask-cosmos`,
+`retrieval/search`, this skill, and everything else.
+
+But it means the path in this file, `prompt-logs/<hostname>.md`, must resolve against
+**the real terminal working directory this session started in** — the team's own
+project, the repo they'll actually submit — never against `~/vast-builders-challenge`,
+even though that's where this very skill file and all its siblings physically live. If
+you write there instead, the log ends up in the organizers' shared repo, not the team's
+submission, and most teams can't even push to that repo to begin with.
+
+If you're not certain which directory that is, run `pwd` (or check the working
+directory the session's tool calls have been operating in) before writing — don't guess,
+and don't default to `~/vast-builders-challenge` just because that's where you read this
+instruction from.
+
 ## Why per-desktop, not one shared file
 
 Two teammates on the same team get **separate VMs** (one each), so they have **separate
