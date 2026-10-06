@@ -23,7 +23,7 @@ See [`.cursor/README.md`](.cursor/README.md) for the full list, links, and typic
 
 **Ingest:** [upload-video](.cursor/skills/ingest/upload-video/SKILL.md) · [reingest-videos](.cursor/skills/ingest/reingest-videos/SKILL.md) · [reingest-chunk](.cursor/skills/ingest/reingest-chunk/SKILL.md)
 
-**Retrieval:** [login](.cursor/skills/retrieval/login/SKILL.md) · [search](.cursor/skills/retrieval/search/SKILL.md) · [list-metadata](.cursor/skills/retrieval/list-metadata/SKILL.md) · [dashboard](.cursor/skills/retrieval/dashboard/SKILL.md) · [suggest-prompts](.cursor/skills/retrieval/suggest-prompts/SKILL.md) · [videos](.cursor/skills/retrieval/videos/SKILL.md) · [agent-qa](.cursor/skills/retrieval/agent-qa/SKILL.md) · [vastdb-read](.cursor/skills/retrieval/vastdb-read/SKILL.md)
+**Retrieval:** [login](.cursor/skills/retrieval/login/SKILL.md) · [search](.cursor/skills/retrieval/search/SKILL.md) · [list-metadata](.cursor/skills/retrieval/list-metadata/SKILL.md) · [dashboard](.cursor/skills/retrieval/dashboard/SKILL.md) · [suggest-prompts](.cursor/skills/retrieval/suggest-prompts/SKILL.md) · [videos](.cursor/skills/retrieval/videos/SKILL.md) · [agent-qa](.cursor/skills/retrieval/agent-qa/SKILL.md) · [vastdb-read](.cursor/skills/retrieval/vastdb-read/SKILL.md) · [vastdb-write](.cursor/skills/retrieval/vastdb-write/SKILL.md)
 
 **Deployment:** [deployment](.cursor/skills/deployment/README.md) · **GPU:** [gpu](.cursor/skills/gpu/README.md)
 
