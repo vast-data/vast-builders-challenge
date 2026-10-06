@@ -12,6 +12,7 @@ Open this repo in Cursor so agents discover skills under [`.cursor/skills/`](.cu
 |------|---------|
 | **Ingest** | Upload a new video, or re-ingest existing indexed videos/chunks |
 | **Retrieval** | Search, browse, and ask questions over indexed video via the backend API |
+| **Vast Database** | Read/write the team VastDB with the Python SDK |
 | **Deployment** | Deploy retrieval K8s apps, check health, or ship a hackathon mini-app without Docker/registry |
 | **GPU** | Health-check and smoke-test Cosmos / YOLO model endpoints |
 
@@ -23,7 +24,9 @@ See [`.cursor/README.md`](.cursor/README.md) for the full list, links, and typic
 
 **Ingest:** [upload-video](.cursor/skills/ingest/upload-video/SKILL.md) · [reingest-videos](.cursor/skills/ingest/reingest-videos/SKILL.md) · [reingest-chunk](.cursor/skills/ingest/reingest-chunk/SKILL.md)
 
-**Retrieval:** [login](.cursor/skills/retrieval/login/SKILL.md) · [search](.cursor/skills/retrieval/search/SKILL.md) · [list-metadata](.cursor/skills/retrieval/list-metadata/SKILL.md) · [dashboard](.cursor/skills/retrieval/dashboard/SKILL.md) · [suggest-prompts](.cursor/skills/retrieval/suggest-prompts/SKILL.md) · [videos](.cursor/skills/retrieval/videos/SKILL.md) · [agent-qa](.cursor/skills/retrieval/agent-qa/SKILL.md) · [vastdb-read](.cursor/skills/retrieval/vastdb-read/SKILL.md) · [vastdb-write](.cursor/skills/retrieval/vastdb-write/SKILL.md)
+**Retrieval:** [login](.cursor/skills/retrieval/login/SKILL.md) · [search](.cursor/skills/retrieval/search/SKILL.md) · [list-metadata](.cursor/skills/retrieval/list-metadata/SKILL.md) · [dashboard](.cursor/skills/retrieval/dashboard/SKILL.md) · [suggest-prompts](.cursor/skills/retrieval/suggest-prompts/SKILL.md) · [videos](.cursor/skills/retrieval/videos/SKILL.md) · [agent-qa](.cursor/skills/retrieval/agent-qa/SKILL.md)
+
+**Vast Database:** [vastdb-read](.cursor/skills/vast-database/vastdb-read/SKILL.md) · [vastdb-write](.cursor/skills/vast-database/vastdb-write/SKILL.md)
 
 **Deployment:** [deployment](.cursor/skills/deployment/README.md) · **GPU:** [gpu](.cursor/skills/gpu/README.md)
 
