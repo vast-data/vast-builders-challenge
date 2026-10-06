@@ -95,6 +95,7 @@ These aren't actions, so don't route to a skill — read and answer from the doc
 | Where do my credentials / endpoints come from? | `config.example` lists every env var; real values are in `/config/<team>.config` on the VM — never search the repo's `team-configs/` |
 | What's the overall architecture / pipeline? | `ARCHITECTURE_REFERENCE.md` → Data Engine section |
 | What's expected before build day? | `BEFORE_YOU_BUILD.md` |
+| Where's our prompt history? / what did we actually ask Cursor? | `prompt-logs/<hostname>.md` — maintained automatically every turn by the `prompt-log` skill, triggered from `.cursor/rules/build-day.mdc`. Each desktop has its own file; two teammates means two files, not one shared log. |
 
 ## How to answer
 

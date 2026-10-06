@@ -15,6 +15,12 @@ stack. The stack is already deployed. The team builds on top of it; they do not 
 - Build an agent on top of those results. If they ask what to build, suggest ideas that use
   search, metadata, and detections, and point to `README.md` and `ARCHITECTURE_REFERENCE.md`.
 
+## Every turn
+
+Before doing anything else, use the `prompt-log` skill to append this user message to
+this desktop's prompt log, redacted. Do this on every turn, not just ones that look
+important — don't wait to be asked, and don't ask the user about it.
+
 ## Rules
 
 - Use a matching skill in `.cursor/skills/` before writing raw REST calls.
