@@ -16,24 +16,27 @@ language answer and (2) the exact skill to invoke for the real action. It never 
 APIs, runs curl, or performs ingest/search/deploy itself — that's the named skill's job.
 
 Source of truth, in order: this file's routing table, then the repo docs
-([README.md](../../../README.md), [BUILD_DAY.md](../../../BUILD_DAY.md),
-[BEFORE_YOU_BUILD.md](../../../BEFORE_YOU_BUILD.md),
+([README.md](../../../README.md) — the full build-day guide, sections 1-6 plus
+Reference; [BEFORE_YOU_BUILD.md](../../../BEFORE_YOU_BUILD.md);
 [ARCHITECTURE_REFERENCE.md](../../../ARCHITECTURE_REFERENCE.md)), then the other
 skills' own `SKILL.md`/`README.md` files. If a question isn't in the table below, read
 the relevant doc or skill file before answering — don't guess at an endpoint, scenario
 name, or env var.
 
+`BUILD_DAY.md` is now a one-line redirect stub ("moved into README.md") — don't read it
+for content, and don't cite it to the user. `README.md` is the real guide.
+
 ## "How do I get started?"
 
 1. **Team + VM** — form a team, launch the VM from the workshop page, open this repo in
-   Cursor (`cd ~/vast-builders-challenge && agent`). Covered in `BUILD_DAY.md` §1-2.
+   Cursor (`cd ~/vast-builders-challenge && agent`). Covered in `README.md` §1-2.
 2. **Test drive the loop** — before building anything: search what's already indexed,
    ask a question about a video, then re-ingest one clip with a new prompt and search
    again. That one loop (search → ask → re-ingest → search) proves the whole stack
-   works and is the fastest way to learn the skills. `BUILD_DAY.md` §4.
+   works and is the fastest way to learn the skills. `README.md` §4.
 3. **Pick one idea and build it** — see the routing table below for the skill each step
    needs.
-4. **Submit** — `submission` skill, near the end.
+4. **Submit** — no skill for this anymore; see "How do I submit?" below.
 
 If step 1 or 2 fails, see "Is everything working?" below.
 
@@ -41,7 +44,7 @@ If step 1 or 2 fails, see "Is everything working?" below.
 
 | They ask... | Point them at | One line |
 |---|---|---|
-| How do I get started / where do I start? | *(see above)*, then `BUILD_DAY.md` | Team → VM → test-drive loop → build → submit |
+| How do I get started / where do I start? | *(see above)*, then `README.md` | Team → VM → test-drive loop → build → submit |
 | How do I ingest / add a new video? | `ingest/upload-video` | Multipart upload of a **new** local file through the backend |
 | How do I re-run / re-index a video that's already in the archive? | `ingest/reingest-videos` | Re-run detect→reason→embed→write with a new prompt/metadata |
 | How do I re-ingest just one chunk / clip I saw in Explore? | `ingest/reingest-chunk` | Same, scoped to one chunk found from a description, filename, or card |
@@ -60,7 +63,7 @@ If step 1 or 2 fails, see "Is everything working?" below.
 | How do I deploy or redeploy the retrieval stack itself? | `deployment/build-yamls` then `deployment/deploy` | Fill secrets/image tags, then `QUICK_DEPLOY.sh` — not needed for most teams, the stack is already up |
 | Is everything working? / is the deployment healthy? | `deployment/health` | `kubectl get pods`, backend `/health`, effective config |
 | Something's broken and I need help | `ask-cosmos` | Runs the health check, triages the common causes, drafts a help note — never posts it |
-| How do I submit our project? | `submission` | Walks each section, writes `SUBMISSION.md` |
+| How do I submit our project? | No skill for this — `README.md` §6 Demos | Submissions open ~4:30pm at [tokensand.com/vastnyc](https://tokensand.com/vastnyc); don't suggest a `submission` skill, it was removed |
 | What skills exist / what can this repo do? | *(this table)*, or the group `README.md` files under `.cursor/skills/*/README.md` | — |
 
 ## Internal vs external URL (deployed apps)
@@ -101,13 +104,17 @@ These aren't actions, so don't route to a skill — read and answer from the doc
    lives in the target skill.
 3. Name the skill to invoke next (or the doc section, for the non-action questions),
    so the user or agent can load it immediately.
-4. If nothing matches, don't invent an answer: skim `BUILD_DAY.md` or the relevant
-   group `README.md` under `.cursor/skills/`, then answer from what's actually there.
+4. If nothing matches, don't invent an answer: skim the repo's root `README.md` (the
+   full build-day guide — not `BUILD_DAY.md`, which is just a redirect stub) or the
+   relevant group `README.md` under `.cursor/skills/`, then answer from what's actually
+   there.
 5. If it still doesn't match anything — this table doesn't update itself when a skill
-   is added — list `.cursor/skills/*/SKILL.md` and `.cursor/skills/*/*/SKILL.md`
-   directly and read the frontmatter `description` of any skill not already covered
-   above. A skill that didn't exist when this file was last edited won't be in the
-   table or necessarily in `BUILD_DAY.md` either; its own `SKILL.md` is still the
-   source of truth and is always current.
+   is added, removed, or renamed — list `.cursor/skills/*/SKILL.md` and
+   `.cursor/skills/*/*/SKILL.md` directly and read the frontmatter `description` of any
+   skill not already covered above. A skill that didn't exist (or was removed) when this
+   file was last edited won't be in the table or necessarily in `README.md` either; the
+   live listing on disk is the source of truth and is always current. The `submission`
+   skill is a real example of this: it's named in old transcripts and may come up in a
+   stale memory, but it was removed — don't suggest running it.
 6. Never execute the target skill yourself unless the user's next message is the
    concrete task — this skill's job ends at pointing the way.
