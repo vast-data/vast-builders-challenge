@@ -4,7 +4,7 @@ Cursor agent skills for the VSS2 video search stack — upload or re-ingest vide
 
 **Hackathon participants:** start with **[ARCHITECTURE_REFERENCE.md](ARCHITECTURE_REFERENCE.md)** (models, pipeline overview, video corpus, example prompts). UI screenshots are in [`docs/hackathon/`](docs/hackathon/).
 
-Open this repo in Cursor so agents discover skills under [`.cursor/skills/`](.cursor/skills/). On the VM, runtime configuration is mounted at absolute `/config/`: `<team>.config`, `kubeconfig`, `vss-cli-secret.yaml`, and `backend-secret.yaml`. Keep credentials outside this repository.
+Open this repo in Cursor so agents discover skills under [`.cursor/skills/`](.cursor/skills/). On the VM, runtime configuration is mounted at absolute `/config/`: `<team>.config`, `team-<num>-k8s.yaml` (kubeconfig), `vss-cli-secret.yaml`, and `backend-secret.yaml`. Keep credentials outside this repository.
 
 ## What’s in here
 
