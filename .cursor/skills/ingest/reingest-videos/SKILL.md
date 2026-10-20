@@ -22,12 +22,11 @@ To conserve infrastructure resources, keep each re-ingest request small. A reque
 stay within all of these (adjust the values here if the limits change):
 
 - **Duration:** at most 30 seconds of video in total.
-- **File size:** at most 100 MB in total.
 - **Chunks:** at most 3 of the latest chunks.
 
-Use the duration and size shown for each chunk to work out the total before asking for
+Use the duration shown for each chunk to work out the total before asking for
 confirmation. If the request is over a limit, say so, suggest a smaller chunk count, and
-do not start it. If a chunk's size or duration is not available, ask for fewer chunks
+do not start it. If a chunk's duration is not available, ask for fewer chunks
 rather than guessing. For more footage, ask the user to re-ingest in small batches
 rather than all at once.
 

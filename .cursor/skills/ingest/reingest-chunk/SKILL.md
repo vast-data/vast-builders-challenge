@@ -155,8 +155,8 @@ Explore only returns fully indexed chunks, so a displayed candidate is safe for
 whole-chunk re-ingest.
 
 To conserve infrastructure resources, re-ingest one chunk at a time and keep it small:
-at most 30 seconds and 100 MB. If the chosen chunk is over either limit, or its size or
-duration is not available, say so and do not start it. The same limits apply in
+at most 30 seconds. If the chosen chunk is over that limit, or its duration is not
+available, say so and do not start it. The same limits apply in
 `ingest/reingest-videos`.
 
 ## Prompt and metadata choices
