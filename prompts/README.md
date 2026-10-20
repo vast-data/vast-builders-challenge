@@ -1,49 +1,35 @@
-# 2026 GTC Berlin workshop: demo build prompts
+# Demo prompts
 
-Cursor build prompts for the GTC Berlin workshop / hackathon lab. Two tracks:
+Cursor prompts for two video sources already indexed on the starter stack: Bundesliga football and Formula racing. Open the repo in Cursor, then paste the block under "Paste into Cursor" from a prompt file into the agent panel.
 
-| Folder | Track | Contents |
+Run a track's `00` context prompt first. It builds nothing; it sets the rules and known pitfalls that every demo in the track follows. Then run a demo. Each demo builds its own small app.
+
+| Track | Prompt | What it gives you |
 |---|---|---|
-| [`dfl-archive/`](dfl-archive/) | Bundesliga (DFL) football archive | `00-foundation.md` (run first), then 5 demos |
-| [`f1-vss/`](f1-vss/) | F1 Academy / Formula E racing footage on the VSS stack | `00-shared-context.md` and `00-economics-overlay.md` (run first), then 12 demos |
+| [`dfl-archive/`](dfl-archive/) | `00-foundation` | Context only: match IDs, filters, licensing rules |
+| | `03-rights-aware-licensing-storefront` | A storefront that shows rights, partner and price per clip, and meters licenses |
+| [`f1-vss/`](f1-vss/) | `00-shared-context` | Context only: race scoping, clip proxy, conventions |
+| | `01-sponsor-exposure-ledger` | Seconds on screen per sponsor, with a best clip each |
+| | `07-archive-overview` | The indexed races at a glance, and one search across both |
+| | `11-live-incident-alerts` | A replayed race that raises safety-car and incident alerts |
+| | `12-broadcast-qc` | Black, freeze and silence checks, with a self-test |
 
-Idea catalog (project names, descriptions, overlap with earlier SF / NYC / London hackathon submissions): [berlin-ideas tab](https://docs.google.com/spreadsheets/d/1nwfOfeOgFUw0fkhu311kjUiChzyFDJciAAdxpT1M6kk/edit#gid=1627914172).
+## What to know about the footage
 
-Original ideas and prompts: Jason Hammons (`cursor-prompts.md` for DFL, `vss-demo-builds.html` for F1-VSS), shared over Slack.
+- Formula racing: two races (`f1-academy_race`, `formula-e_race`), about the first 15 minutes of each broadcast.
+- Bundesliga: five matches of about 15 minutes each, from 2008-09 to 2026-27.
+- Everything is stored as 30 s chunks of 5 s segments. Search takes about 3 s.
 
-## What changed from the originals
-
-The original prompts were written for a from-scratch build, so they spelled out storage prefixes, DataEngine triggers, database DDL, segmentation, captioning and embedding by hand. These versions assume Cursor is opened on the [vast-builders-challenge](https://github.com/relaxedtomato/vast-builders-challenge) starter repo, whose `.cursor/` folder already loads skills for the running VSS stack. Each prompt now names the skill to use, or states the outcome and lets the skill handle the mechanics. Demo-specific logic (fields, scoring, phase rules, acceptance criteria) is unchanged.
-
-### Skills the prompts rely on
+## Skills the prompts use
 
 | Need | Skill (in `.cursor/skills/`) |
 |---|---|
-| Ground rules, never hardcode creds | `rules/build-day.mdc` |
-| Auth to the backend | `retrieval-login` |
-| Search the indexed archive | `retrieval-search` |
-| Grounded Q&A over video | `retrieval-agent-qa` |
-| Playback, per-video summary, YOLO detections | `retrieval-videos` |
-| Filter fields and values | `retrieval-list-metadata` |
+| Search the indexed footage | `retrieval-search` |
+| Playback, captions, detections | `retrieval-videos` |
+| Grounded Q&A | `retrieval-agent-qa` |
 | Ingest health and stats | `retrieval-dashboard` |
-| Raw VAST DataBase reads / own tables | `retrieval-vastdb-read` |
-| Add a new MP4 | `ingest-upload-video` |
-| Re-run indexed footage with a custom prompt | `ingest-reingest-videos`, `ingest-reingest-chunk` |
-| Custom DataEngine functions and triggers | `dataengine-edit-function` → `dataengine-build-function` → `dataengine-functions` → `dataengine-triggers` → `dataengine-pipeline-manifest` |
-| Model endpoints | gpu README, `gpu-model-health`, `gpu-model-smoke-test` |
+| Re-run indexed footage with a custom prompt | `ingest-reingest-videos` (max 3 chunks and 30 seconds per request) |
+| Read and write your own tables | `vast-database-vastdb-read`, `vast-database-vastdb-write` |
 | Stuck | `ask-cosmos` |
-| Wrap up | `submission` |
 
-### Model mapping
-
-The starter stack runs a fixed model set. The originals named other models; the refactored prompts use these instead:
-
-| Original prompt said | Starter stack uses |
-|---|---|
-| Marengo embeddings, "VSS embedding model" | Cosmos-Embed1 (256-dim, text and video) |
-| Pegasus, "VSS VLM", "VSS LLM" | Cosmos3-Reason |
-| "VSS ASR" | Canary-1B (optional, not in the default pipeline) |
-| Grounding DINO open-vocabulary detection | YOLO11 (fixed classes) for objects such as cars; Cosmos3-Reason frame questions for brands/logos |
-| SAM2 tracking | YOLO11 boxes linked across frames (IoU tracking) |
-| PaddleOCR | Cosmos3-Reason reading on-screen graphics; PaddleOCR kept as a fallback |
-| Custom 8 s / 10 s segment index | The existing VSS segment index (already captioned and embedded) |
+Uploading new video is disabled, and the prompts do not deploy DataEngine functions.
