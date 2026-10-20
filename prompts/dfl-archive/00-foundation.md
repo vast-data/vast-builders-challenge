@@ -33,6 +33,12 @@ Licensing rules (the demo seeds these)
 - Rights: one row per asset x territory group x use type. The only ungranted combination is ROW advertising.
 - usage_events territory is the buyer's country. Rate card unit types: query, clip, minute. Example rates are demo values.
 
+UI rules for every demo
+- Layout: a ranked list on the left and one player panel on the right. Selecting a row plays it there. Filter chips with hit counts sit above the list.
+- Cards: match, time as M:SS and score (2 decimals) on one line. Caption trimmed to its first sentence (about 90 characters, ending in "..."), expandable. Drop the "The video shows" lead-in. Never repeat the season or competition inside its group.
+- Load a clip only when it is played, and show one player at a time (each 5 s clip is about 4.6 MB).
+- Counts read "N hits". Show a clear "no good hits" state instead of weak results.
+
 Rules for every demo
 - Each demo builds its own app, with whatever setup it needs. Show every result in the app, not in files.
 - When done, show the single best clip first.

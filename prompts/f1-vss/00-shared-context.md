@@ -25,6 +25,12 @@ Conventions
 - Clips: play the 5 s segment clips from search results through a small server-side proxy in your app. Never show playback_url in the UI; it carries a token.
 - Run the app on the VM on its own port.
 
+UI rules for every demo
+- Layout: a ranked list on the left and one player panel on the right. Selecting a row plays it there. Filter chips with hit counts sit above the list.
+- Cards: race, time as M:SS and score (2 decimals) on one line. Caption trimmed to its first sentence (about 90 characters, ending in "..."), expandable. Drop the "The video shows" lead-in. Never repeat the race inside its group.
+- Load a clip only when it is played, and show one player at a time (each 5 s clip is about 4.6 MB).
+- Counts read "N hits". Show a clear "no good hits" state instead of weak results.
+
 Rules for every demo
 - Each demo builds its own app, with whatever setup it needs. Show every result in the app, not in files.
 - Do not deploy DataEngine functions or polling loops; run on the footage that is already indexed.
