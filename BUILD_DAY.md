@@ -11,8 +11,8 @@ when something matters.
 
 **Pick one idea and build a working app.**
 
-## 2. Video Search & Summary UI
-> 💡 This example app runs on the same API as the skills (`.cursor/skills`) you will be using. It's a built idea of what you can build today, and a quick way to check things out while building.
+## 2. Video Search & Summary UI (Demo App)
+> 💡 This example app runs on the same API as the skills (`.cursor/skills`) you will be using. It's a built idea of what you can build, and a quick way to check things out while building.
 
 From the same lab page, click on Video Search & Summary:
 <p align="center"><img src="docs/images/vss-ui-load.png" alt="The VSS link on the VAST workshop home page" width="90%"></p>
@@ -28,9 +28,7 @@ Explore the three tabs:
 
 ## 3. Skills, Skills, Skills
 
-> 💡 We'll try these out in the next section.
-
-The core skills for the day are `ingest/` and `retrieval/`, in `.cursor/skills/`. More
+The core skills are `ingest/` and `retrieval/`, in `.cursor/skills/`. More
 skills cover the rest of the deployed stack, if you want to explore. Each skill guides the
 coding agent: the endpoint, the request, the response, and what to do when it fails.
 
@@ -47,9 +45,9 @@ password or a URL. If something isn't working, ask for help.
 
 ### Re-ingest: running it again
 
-> ⚠️ **IMPORTANT:** Avoid having everyone on the team re-ingest large chunks of video (i.e. hours of video). Designate 1-2 team members to handle kicking off majority of the re-ingestion. It's okay for each team member to re-ingest a few videos to try things out.
+> ⚠️ **IMPORTANT:** Avoid re-ingesting large chunks of video (i.e. hours of video). Start with a few clips and read the captions first.
 
-Your team's video is already indexed. Re-ingest means running it through the pipeline
+The video is already indexed. Re-ingest means running it through the pipeline
 again with a different prompt, so the descriptions match what you're building.
 
 | Skill | Use it to |
@@ -59,37 +57,6 @@ again with a different prompt, so the descriptions match what you're building.
 
 **Re-ingesting takes a few minutes.** Every segment is described, embedded, and detected
 again before it becomes searchable. Ask Cursor to confirm before you go looking.
-
-> 💡 **The prompt decides what gets indexed.** Cosmos Reason describes every segment
-> following an ingestion prompt. Anything it doesn't ask about never gets written down, so
-> you can't search for it later.
->
-> On a construction site you might ask it to describe safety gear. In a public space you
-> might ask whether anyone with an umbrella is in frame. Search the existing index for what your idea
-> needs; if it isn't there, that's what re-ingesting is for.
->
-> Tell Cursor what you want described, in your own words, or one of the built-in preset
-> scenarios. Ask Cursor to list the scenarios (`list-metadata` looks these up live) if
-> you want to see what's available. We'll try this out in the next section.
->
-> Not clear? Flag down someone to clarify.
-
-### Retrieval: Searching Video
-
-| Skill | Use it to |
-|-------|-----------|
-| `search` | Find moments matching a description, with filters for time, location, camera, tags. |
-| `agent-qa` | Ask a question and get an answer with evidence, instead of a list of hits. |
-| `videos` | Browse what's indexed, play a clip, read its captions and detections, summarize a whole video. |
-| `dashboard` | Check what's indexed and whether ingest is healthy. |
-| `suggest-prompts` | Get generated example queries and notable recent events. |
-
-Worth knowing: `vastdb-read` queries the database directly, for when you want to check the database contents.
-
-## 4. Test Drive
-
-The README Quickstart covered search and ask. Next, see what the existing descriptions
-miss, then re-ingest with your own prompt.
 
 ### Find what's missing
 
@@ -118,7 +85,19 @@ To watch progress, ask `is it done yet?` or open the Dashboard tab:
 > ⚠️ **Don't ingest videos from the internet (e.g. YouTube).** We picked the
 > provided video sources specifically because their licensing allows this use.
 
-## 5. Build
+### Retrieval: Searching Video
+
+| Skill | Use it to |
+|-------|-----------|
+| `search` | Find moments matching a description, with filters for time, location, camera, tags. |
+| `agent-qa` | Ask a question and get an answer with evidence, instead of a list of hits. |
+| `videos` | Browse what's indexed, play a clip, read its captions and detections, summarize a whole video. |
+| `dashboard` | Check what's indexed and whether ingest is healthy. |
+| `suggest-prompts` | Get generated example queries and notable recent events. |
+
+Worth knowing: the `vast-database/` skills reach the database directly. `vastdb-read` queries it, and `vastdb-write` creates tables and inserts rows, for when your app needs its own data alongside the index.
+
+## 4. Build
 
 ### What "done" looks like
 You have a working index and you know how to query it. What comes next is what you
@@ -126,8 +105,10 @@ build on top. A small app, agent, or a dashboard. A clear use case.
 
 ### What video you have
 
-The README Quickstart used two use-case tracks: formula racing and a Bundesliga football archive. The rest of the index covers a few other kinds of real-world footage:
+The videos come from a few kinds of real-world footage:
 
+- Formula racing footage (F1 Academy and Formula E)
+- Bundesliga football footage
 - Dashcam driving footage of vehicles and pedestrians interacting at intersections and
   crossings
 - Overhead, multi-camera highway footage tracking vehicle movement along a stretch of
@@ -136,7 +117,7 @@ The README Quickstart used two use-case tracks: formula racing and a Bundesliga 
 
 <!-- TODO: two more source types pending confirmation before adding here. -->
 
-Explore what's actually indexed in the [Video Search & Summary UI](#2-video-search--summary-ui) (section 2).
+Explore what's actually indexed in the [Video Search & Summary UI](#2-video-search--summary-ui-demo-app) (section 2).
 
 Your index is already full and searchable. For the full list of folders, camera IDs, use
 cases, and worked example queries, see the
