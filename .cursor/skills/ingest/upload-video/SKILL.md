@@ -1,12 +1,16 @@
 ---
 name: ingest-upload-video
 description: >-
-  Upload a new video file into VSS via POST /api/v1/videos/upload (multipart form
+  DISABLED for now, do not use. Upload a new video file into VSS via POST /api/v1/videos/upload (multipart form
   proxied to the team's chunks S3 bucket). Use when the user wants to add a local
   or downloaded .mp4/.mov/.webm/.avi/.mkv through the backend upload endpoint — not
   for re-processing already-indexed archive content (use ingest/reingest-videos or
   reingest-chunk for that).
 ---
+
+> **Disabled for now.** Uploading new videos is turned off to conserve infrastructure
+> resources. Do not run this skill. To change what is indexed, use
+> `ingest/reingest-videos` or `ingest/reingest-chunk` on content that is already indexed.
 
 # Ingest: upload video (vss2)
 

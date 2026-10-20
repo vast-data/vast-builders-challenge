@@ -16,6 +16,21 @@ Re-ingest copies existing segment objects to unique S3 keys, runs them through
 detector → reasoner → embedder → writer, and atomically replaces each matching
 VastDB segment slot.
 
+## Limits
+
+To conserve infrastructure resources, keep each re-ingest request small. A request must
+stay within all of these (adjust the values here if the limits change):
+
+- **Duration:** at most 30 seconds of video in total.
+- **File size:** at most 100 MB in total.
+- **Chunks:** at most 3 of the latest chunks.
+
+Use the duration and size shown for each chunk to work out the total before asking for
+confirmation. If the request is over a limit, say so, suggest a smaller chunk count, and
+do not start it. If a chunk's size or duration is not available, ask for fewer chunks
+rather than guessing. For more footage, ask the user to re-ingest in small batches
+rather than all at once.
+
 ## Non-negotiable interaction
 
 Do not start re-ingest until the user has chosen:
@@ -140,7 +155,7 @@ Show how many complete chunks are available for the selected target and ask how
 many of the **latest** chunks to re-ingest.
 
 - Minimum: 1
-- Maximum: available complete chunks and API limit 100
+- Maximum: available complete chunks, API limit 100, and the Limits above
 - For a target identified only by `original_video`, use 1.
 
 Explain the resulting clip count when known. Re-ingest always selects whole
