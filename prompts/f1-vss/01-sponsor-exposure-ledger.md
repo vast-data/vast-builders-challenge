@@ -1,6 +1,6 @@
 # F1-VSS 1 - Sponsor exposure ledger
 
-**Purpose:** measure on-screen seconds per sponsor in a race and produce evidence frames and a best clip per brand.
+**Purpose:** measure on-screen seconds per sponsor in a race and show a best clip per brand.
 
 Requires: `00-shared-context.md`.
 
@@ -9,23 +9,20 @@ Requires: `00-shared-context.md`.
 ## Paste into Cursor
 
 ```
+Prompt ID: f1-vss/01-sponsor-exposure-ledger
+
 Demo 1: sponsor exposure ledger.
 
-Config
-- config/brands.yaml: list of {brand, prompts: ["<brand> logo", "<brand> text"], category}. Start with the sponsors visible on the cars and track boards.
+The race is already captioned and indexed, and the models are reachable only through the pipeline. Measure exposure from the indexed captions and search results, not from per-frame model calls.
 
 Steps
-1. Create table f1demo.sponsor_exposure (race_id, brand, start_ts, end_ts, seconds, max_screen_area_pct, mean_confidence, best_frame_uri).
-2. Build a DataEngine function sponsor_ledger on the segment-land trigger so every newly indexed segment is scanned.
-3. Handler: sample frames at 2 fps. YOLO11 has fixed classes, so ask Cosmos3-Reason per frame which configured brands are visible, with a confidence and approximate bbox. Keep detections with confidence >= 0.35.
-4. Merge consecutive detections of the same brand into intervals when the gap is under 1.0 s; drop intervals under 1.0 s.
-5. Insert intervals into sponsor_exposure. Save the highest-confidence frame per interval as JPG to clips/sponsor/.
-6. Per brand: cut a 30 s clip around its longest interval; upload the top 5 frames and the clip to Drive.
-7. Wrap steps 3 to 6 in costs.track(asset_type="report").
-8. Write out/sponsor.json: {race_id, brands: [{brand, total_seconds, intervals, top_frames: [drive_urls], best_clip: drive_preview_url, cost}]}.
+1. Brands: build the brand list from brand names in the indexed captions (retrieval-videos explore, reasoning_content) for one race. Give each brand a category (alcohol, betting, crypto, tobacco, other), editable in the app.
+2. Create table f1demo.sponsor_exposure (race_id, brand, category, interval_id, start_ts, end_ts, seconds, mean_score, source, start_chunk_index) with vast-database-vastdb-write. start_ts and end_ts are race seconds = chunk_index x 30 + offset.
+3. For each brand, run retrieval-search for "<brand> logo" filtered to the race. Treat each matching 5 s segment as 5 s of exposure and use the search score as confidence. Drop weak matches; pick the cutoff by checking a few results.
+4. Merge consecutive matching segments of the same brand into intervals (gap under 5 s) and insert them into sponsor_exposure.
+5. The app shows per brand: total seconds, intervals, and a best clip (the highest-scoring segment, played with retrieval-videos). State the race scanned and that the resolution is 5 s segments.
 
 Done when
 - Total seconds per brand sum correctly from intervals.
 - Spot check: the best clip for each brand visibly shows that brand.
-- Report cost appears in costs.json.
 ```

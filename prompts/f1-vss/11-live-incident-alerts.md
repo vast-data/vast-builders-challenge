@@ -1,6 +1,6 @@
 # F1-VSS 11 - Live incident alerts
 
-**Purpose:** watch a race feed and raise a confirmed alert (with clip) for crashes, spins, yellow flags and safety cars within seconds.
+**Purpose:** watch a race feed and raise a confirmed alert (with clip) for crashes, spins, yellow flags and safety cars as a race replays.
 
 Requires: `00-shared-context.md`.
 
@@ -9,13 +9,15 @@ Requires: `00-shared-context.md`.
 ## Paste into Cursor
 
 ```
+Prompt ID: f1-vss/11-live-incident-alerts
+
 Demo 11: live incident alerts.
 
 Steps
-1. Simulate live: feed the race in real-time 5 s chunks to Cosmos3-Reason (see the gpu README) with the question "Is there a crash, spin, yellow flag or safety car? Answer with one label or none."
-2. Confirm an alert only if two consecutive chunks agree.
-3. On alert: cut a 20 s clip ending at the detection, upload to Drive, post to a Slack webhook (config/slack.yaml).
-4. Write out/alerts.json: {alerts: [{type, race_ts, detected_after_s, drive_preview_url}]}.
+1. Simulate live: replay one race's indexed 5 s segments in order (retrieval-videos explore, timeline), pacing the replay so each segment is processed when it would have finished airing.
+2. For each segment, read its existing caption (reasoning_content) and flag a crash, spin, yellow flag or safety car when the caption mentions one. Only the pipeline's models are available, so use the captions, not new model calls.
+3. Confirm a safety car or yellow flag only if two consecutive segments agree. A crash or spin may alert on a single hit. After an alert, suppress that type until three consecutive segments show none, so each incident raises one alert.
+4. The app shows a live alert feed. Each alert has its type, race time and the segment clip, played with retrieval-videos.
 
-Done when every safety car in the race raises an alert with under 15 s latency.
+Done when the race's safety-car period raises exactly one alert within 15 s of its first appearing in the replay, and the app reports how many crashes and yellow flags were caught.
 ```

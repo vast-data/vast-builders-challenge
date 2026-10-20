@@ -9,14 +9,18 @@ Requires: `00-shared-context.md`.
 ## Paste into Cursor
 
 ```
+Prompt ID: f1-vss/12-broadcast-qc
+
 Demo 12: broadcast QC.
 
 Steps
-1. Create table f1demo.qc_events (race_id, issue, start_ts, end_ts, severity).
-2. Build a DataEngine function broadcast_qc on the chunk-land trigger so every incoming race is checked.
-3. Run ffmpeg blackdetect (d=0.5), freezedetect (d=2), silencedetect (d=2, noise=-50dB).
-4. Every 10 s, ask Cosmos3-Reason whether the timing graphics are on screen; flag gaps over 30 s during racing.
-5. Cut a clip per issue, upload to Drive, write out/qc.json.
+1. Create table f1demo.qc_events (race_id, source, issue, start_ts, end_ts, severity) with vast-database-vastdb-write. Times are relative to the file.
+2. In the app, list one race's chunks with retrieval-videos (explore), fetch each through its playback URL, and check it locally. Nothing is uploaded or re-ingested.
+3. Run ffmpeg blackdetect (d=0.5), freezedetect (n=-60dB, d=2) and silencedetect (d=2, noise=-50dB). Ignore a freeze that overlaps a black segment.
+4. Optional timing-graphics check: flag a gap over 30 s where consecutive racing segments' captions mention no timing graphics. Captions are the only signal, so expect false alarms on replays.
+5. The app lists every issue with its time, severity and the affected segment clip, played with retrieval-videos.
 
-Done when an injected 3 s black frame in a test file is detected.
+Done when
+- A 3 s black frame injected into a locally made test copy of a chunk is detected.
+- The same check on an untouched copy reports nothing.
 ```
