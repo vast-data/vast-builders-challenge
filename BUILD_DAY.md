@@ -11,22 +11,7 @@ when something matters.
 
 **Pick one idea and build a working app.**
 
-## 2. Video Search & Summary UI (Demo App)
-> 💡 This example app runs on the same API as the skills (`.cursor/skills`) you will be using. It's a built idea of what you can build, and a quick way to check things out while building.
-
-From the same lab page, click on Video Search & Summary:
-<p align="center"><img src="docs/images/vss-ui-load.png" alt="The VSS link on the VAST workshop home page" width="90%"></p>
-
-Try a few of the search suggestions to see ranked clips with timestamps and the description Cosmos Reason returned for each one:
-
-<p align="center"><img src="docs/images/vss-search.png" alt="The VSS search interface with the search box, filters, and suggested prompts" width="90%"></p>
-
-<!-- > [TODO] replace w/ giphy / video and search topic -->
-
-Explore the three tabs:
-**Search** to query videos, **Explore** to browse what's indexed, and **Dashboard** to get stats.
-
-## 3. Skills, Skills, Skills
+## 2. Skills, Skills, Skills
 
 The core skills are `ingest/` and `retrieval/`, in `.cursor/skills/`. More
 skills cover the rest of the deployed stack, if you want to explore. Each skill guides the
@@ -97,7 +82,7 @@ To watch progress, ask `is it done yet?` or open the Dashboard tab:
 
 Worth knowing: the `vast-database/` skills reach the database directly. `vastdb-read` queries it, and `vastdb-write` creates tables and inserts rows, for when your app needs its own data alongside the index.
 
-## 4. Build
+## 3. Build
 
 ### What "done" looks like
 You have a working index and you know how to query it. What comes next is what you
@@ -117,7 +102,7 @@ The videos come from a few kinds of real-world footage:
 
 <!-- TODO: two more source types pending confirmation before adding here. -->
 
-Explore what's actually indexed in the [Video Search & Summary UI](#2-video-search--summary-ui-demo-app) (section 2).
+Explore what's actually indexed in the [Video Search & Summary UI](README.md#3-video-search--summary-ui-demo-app).
 
 Your index is already full and searchable. For the full list of folders, camera IDs, use
 cases, and worked example queries, see the

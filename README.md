@@ -62,7 +62,23 @@ Want to continue on a specific track? Here are more prompts you can try: [`promp
 
 If a search comes back empty or something fails, see [If something looks off](#if-something-looks-off).
 
-## 3. Summary
+## 3. Video Search & Summary UI (Demo App)
+> 💡 This example app runs on the same API as the skills (`.cursor/skills`) you will be using. It's a built idea of what you can build, and a quick way to explore the footage.
+
+From the same workshop home page, click on Video Search & Summary:
+
+<p align="center"><img src="docs/images/vss-ui-load.png" alt="The VSS link on the VAST workshop home page" width="90%"></p>
+
+Try a few of the search suggestions to see ranked clips with timestamps and the description Cosmos Reason returned for each one:
+
+<p align="center"><img src="docs/images/vss-search.png" alt="The VSS search interface with the search box, filters, and suggested prompts" width="90%"></p>
+
+<!-- > [TODO] replace w/ giphy / video and search topic -->
+
+Explore the three tabs:
+**Search** to query videos, **Explore** to browse what's indexed, and **Dashboard** to get stats.
+
+## 4. Summary
 
 ### What just happened
 You searched and asked questions over hours of video in plain language. Behind each prompt, Cursor picked a skill, called the pipeline, and returned moments or an answer. You didn't set up any of it. Here's what ran behind them:
