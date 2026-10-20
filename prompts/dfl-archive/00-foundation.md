@@ -1,6 +1,6 @@
 # DFL 0 - Foundation (run first)
 
-**Purpose:** shared tables, usage meter and Streamlit app shell that DFL prompts 1 to 5 build on. The footage is already indexed (segmented, captioned, embedded, YOLO-detected) by the existing VSS pipeline, so this prompt only adds the DFL-specific business layer on top.
+**Purpose:** shared tables, usage meter and Streamlit app shell that the DFL storefront demo (prompt 3) builds on. The footage is already indexed (segmented, captioned, embedded, YOLO-detected) by the existing VSS pipeline, so this prompt only adds the DFL-specific business layer on top.
 
 ---
 
@@ -9,7 +9,7 @@
 ```
 Prompt ID: dfl-archive/00-foundation
 
-Build the shared foundation for five Bundesliga (DFL) archive demos on top of the stack that is already running. Follow .cursor/rules/build-day.mdc. Use the matching skill in .cursor/skills/ for every platform call; do not write raw REST or invent endpoints.
+Build the shared foundation for the Bundesliga (DFL) licensing demo on top of the stack that is already running. Follow .cursor/rules/build-day.mdc. Use the matching skill in .cursor/skills/ for every platform call; do not write raw REST or invent endpoints.
 
 What already exists (do not rebuild it):
 - The DFL footage is already ingested and indexed by the VSS pipeline: segmented, captioned by Cosmos3-Reason, embedded with Cosmos-Embed1, YOLO detections stored. Use retrieval-videos (explore) to confirm, and retrieval-dashboard for ingest health.
@@ -25,7 +25,7 @@ Build these pieces:
 
 2. Business tables (VAST DataBase, schema dfl; read with vast-database-vastdb-read, create tables and insert rows with vast-database-vastdb-write)
    - rights(asset_id, territory, use_type, term_months, partner, rate_ref): one row per asset x territory group (DACH, ROW) x use_type. territory holds the group. partner = Sportcast for DACH (DE, AT, CH, LI, LU), IMG elsewhere. Leave at least one combination ungranted so demo 3 can show a blocked case.
-   - rate_card(rate_ref, use_type, unit_type, territory, price_eur): unit_type is one of query, clip, minute, territory, brand_minute, report, hour, access.
+   - rate_card(rate_ref, use_type, unit_type, territory, price_eur): unit_type is one of query, clip, minute.
    - usage_events(event_id, ts, buyer_id, action, asset_id, start_s, end_s, units, unit_type, territory, use_type, partner, gpu_seconds, model, price_eur)
    - In usage_events, territory is the buyer's country.
 
@@ -34,14 +34,14 @@ Build these pieces:
    - Every user-facing action in every demo goes through it.
 
 4. App shell
-   - One Streamlit app, app.py (install streamlit if it is missing). Sidebar picks the buyer persona (id, territory, use type). One tab per demo: Search, Market reels, Storefront, Sponsors, Datasets, Meter.
+   - One Streamlit app, app.py (install streamlit if it is missing). Sidebar picks the buyer persona (id, territory, use type). Tabs: Matches (the editable assets table), Storefront, Meter.
    - Meter tab: live usage_events totals by buyer, action and partner, plus the latest 50 rows.
    - Shared helpers:
      - search_text(query, filters, k) via retrieval-search. It takes about 3 s per query (it always adds an LLM summary), so show a spinner and do not promise sub-second results.
      - play_clip(original_video, start_s, end_s): play the matching segment clips (5 s each) in the app with retrieval-videos, back to back for a longer moment. Do not cut clips with ffmpeg.
 
 5. Seed data
-   - rate_card with example rates (search per query, clip retrieved, minute rendered, licensed minute by use type, brand-minute, dataset hour), clearly marked as demo values.
+   - rate_card with example rates (search per query, clip retrieved, licensed minute by use type), clearly marked as demo values.
    - A default rights row per territory group for every asset, leaving one combination ungranted.
 
 Acceptance: assets is populated for every indexed match; search_text returns hits with timecodes; one search writes one usage_events row; README.md explains setup and run. If anything is stuck, use ask-cosmos.

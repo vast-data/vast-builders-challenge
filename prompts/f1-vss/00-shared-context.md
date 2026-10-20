@@ -1,6 +1,6 @@
 # F1-VSS 0 - Shared context and scaffold (run first)
 
-**Purpose:** common helpers (clip playback) that all twelve F1 / Formula E demos use. Segmentation, captioning, embedding and detection are already handled by the running VSS pipeline.
+**Purpose:** common helpers (clip playback) that the F1 / Formula E demos use. Segmentation, captioning, embedding and detection are already handled by the running VSS pipeline.
 
 ---
 
@@ -9,7 +9,7 @@
 ```
 Prompt ID: f1-vss/00-shared-context
 
-You are building GTC demos on the VSS stack that is already running in this workspace. Follow .cursor/rules/build-day.mdc and use the matching skill in .cursor/skills/ for every platform call. Do not invent your own storage layer, endpoints or model hosts.
+You are building demos on the VSS stack that is already running in this workspace. Follow .cursor/rules/build-day.mdc and use the matching skill in .cursor/skills/ for every platform call. Do not invent your own storage layer, endpoints or model hosts.
 
 What already exists (do not rebuild it):
 - Race footage (F1 Academy / Formula E MP4s) is ingested and indexed: segmented, captioned by Cosmos3-Reason, embedded with Cosmos-Embed1 (256-dim), YOLO11 detections stored. race_id = the part of the file name between the YYYYMMDD_HHMMSS_ prefix and _chunk_NNNN (e.g. formula-e_race). Footage is indexed as 30 s chunks of 5 s segments; race time = chunk_index x 30 + offset. Check with retrieval-videos (explore) and retrieval-dashboard.
