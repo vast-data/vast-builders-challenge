@@ -80,8 +80,6 @@ To watch progress, ask `is it done yet?` or open the Dashboard tab:
 | `dashboard` | Check what's indexed and whether ingest is healthy. |
 | `suggest-prompts` | Get generated example queries and notable recent events. |
 
-Worth knowing: the `vast-database/` skills reach the database directly. `vastdb-read` queries it, and `vastdb-write` creates tables and inserts rows, for when your app needs its own data alongside the index.
-
 ## 3. Build
 
 ### What "done" looks like
