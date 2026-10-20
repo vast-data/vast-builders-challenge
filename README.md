@@ -22,7 +22,23 @@ Cursor is your coding agent. Describe what you want in plain language and let it
 
 <p align="center"><img src="docs/images/cursor-agent-prompt.png" alt="The Cursor agent panel with the prompt: what's in the index? show me a few examples" width="90%"></p>
 
-## 2. Quickstart
+## 2. Video Search & Summary UI (Demo App)
+> 💡 This example app runs on the same API as the skills (`.cursor/skills`) you will be using. It's a built idea of what you can build, and a quick way to explore the footage.
+
+From the same workshop home page, click on Video Search & Summary:
+
+<p align="center"><img src="docs/images/vss-ui-load.png" alt="The VSS link on the VAST workshop home page" width="90%"></p>
+
+Try a few of the search suggestions to see ranked clips with timestamps and the description Cosmos Reason returned for each one:
+
+<p align="center"><img src="docs/images/vss-search.png" alt="The VSS search interface with the search box, filters, and suggested prompts" width="90%"></p>
+
+<!-- > [TODO] replace w/ giphy / video and search topic -->
+
+Explore the three tabs:
+**Search** to query videos, **Explore** to browse what's indexed, and **Dashboard** to get stats.
+
+## 3. Quickstart
 
 Run a few prompts in Cursor to see the stack work. Type each one into the agent panel.
 
@@ -58,25 +74,13 @@ find every overtake into turn 1 and list the video and timestamp for each
 find goalkeepers saving a penalty, with results from at least two different decades
 ```
 
-Want to continue on a specific track? Here are more prompts you can try: [`prompts/`](prompts/).
+Want to continue on a specific track? Ask Cursor to walk you through the prompts in [`prompts/`](prompts/):
 
-If a search comes back empty or something fails, see [If something looks off](#if-something-looks-off).
+```
+show me the build tracks in prompts/ and let me pick one to run
+```
 
-## 3. Video Search & Summary UI (Demo App)
-> 💡 This example app runs on the same API as the skills (`.cursor/skills`) you will be using. It's a built idea of what you can build, and a quick way to explore the footage.
-
-From the same workshop home page, click on Video Search & Summary:
-
-<p align="center"><img src="docs/images/vss-ui-load.png" alt="The VSS link on the VAST workshop home page" width="90%"></p>
-
-Try a few of the search suggestions to see ranked clips with timestamps and the description Cosmos Reason returned for each one:
-
-<p align="center"><img src="docs/images/vss-search.png" alt="The VSS search interface with the search box, filters, and suggested prompts" width="90%"></p>
-
-<!-- > [TODO] replace w/ giphy / video and search topic -->
-
-Explore the three tabs:
-**Search** to query videos, **Explore** to browse what's indexed, and **Dashboard** to get stats.
+> 💡 If a search comes back empty or something fails, see [If something looks off](#if-something-looks-off).
 
 ## 4. Summary
 
@@ -93,7 +97,9 @@ Everything under "pre-built, already running" was done for you.
 - **Skills** that turned your plain-language prompts into calls to the pipeline.
 - **Serverless LLM inference** from Weights & Biases by Coreweave, available for your own app's logic when you build further.
 
-Want to keep going? See the [Build Day guide](BUILD_DAY.md).
-
 ### If something looks off
 Run the health check in the [Reference](BUILD_DAY.md#reference) section of the Build Day guide. If it fails, or you need more help, run `/ask-cosmos`. It writes up a note for you: copy it and share it with an organizer, and we'll debug it together.
+
+## 5. Keep going
+
+Want to keep going? See the [Build Day guide](BUILD_DAY.md).

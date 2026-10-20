@@ -7,9 +7,12 @@ Run a track's `00` context prompt first. It builds nothing; it sets the rules an
 | Track | Prompt | What it gives you |
 |---|---|---|
 | [`dfl-archive/`](dfl-archive/) | `00-foundation` | Context only: match IDs, filters, licensing rules |
+| | `01-across-the-eras` | The same moment searched across five matches, grouped by season |
+| | `02-highlight-set-builder` | Accept and reject clips for a topic, then save the set with a summary card |
 | | `03-rights-aware-licensing-storefront` | A storefront that shows rights, partner and price per clip, and meters licenses |
 | [`f1-vss/`](f1-vss/) | `00-shared-context` | Context only: race scoping, clip proxy, conventions |
 | | `01-sponsor-exposure-ledger` | Seconds on screen per sponsor, with a best clip each |
+| | `02-race-moments-timeline` | Search moments per race and see them as markers on a timeline |
 | | `07-archive-overview` | The indexed races at a glance, and one search across both |
 | | `11-live-incident-alerts` | A replayed race that raises safety-car and incident alerts |
 | | `12-broadcast-qc` | Black, freeze and silence checks, with a self-test |

@@ -60,15 +60,8 @@ re-ingest <that video> with a prompt that describes <what your app needs>
 Cursor loads `reingest-videos`, shows you what it's about to re-run, and asks for the
 prompt. Give it a few minutes, then run the same search again. This time it matches.
 
-To watch progress, ask `is it done yet?` or open the Dashboard tab:
-
-![The VSS UI dashboard showing segment counts, indexed clips, and ingest quality](docs/images/vss-dashboard.png)
-
 > 💡 That gap, between what you searched for and what the prompt asked about, is the thing
 > to keep in mind. Everything you can build depends on what the descriptions say.
-
-> ⚠️ **Don't ingest videos from the internet (e.g. YouTube).** We picked the
-> provided video sources specifically because their licensing allows this use.
 
 ### Retrieval: Searching Video
 
@@ -100,7 +93,7 @@ The videos come from a few kinds of real-world footage:
 
 <!-- TODO: two more source types pending confirmation before adding here. -->
 
-Explore what's actually indexed in the [Video Search & Summary UI](README.md#3-video-search--summary-ui-demo-app).
+Explore what's actually indexed in the [Video Search & Summary UI](README.md#2-video-search--summary-ui-demo-app).
 
 Your index is already full and searchable. For the full list of folders, camera IDs, use
 cases, and worked example queries, see the

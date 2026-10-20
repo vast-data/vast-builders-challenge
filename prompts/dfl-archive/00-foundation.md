@@ -14,7 +14,7 @@ Context for the Bundesliga (DFL) demo. This prompt builds nothing: it sets the r
 What already exists (do not rebuild it):
 - Five Bundesliga matches (about 15 minutes each) are ingested and indexed: segmented, captioned, embedded, YOLO detections stored. Check with retrieval-videos (explore) and retrieval-dashboard.
 - Re-ingest with ingest-reingest-videos (max 3 chunks and 30 seconds per request, so one chunk in practice). Uploading new video is disabled.
-- Search: retrieval-search. Playback and detections: retrieval-videos. Auth: retrieval-login.
+- Search: retrieval-search. Playback and detections: retrieval-videos.
 - The models run inside the VSS pipeline; reach them only through the skills.
 - Tables: vast-database-vastdb-read and vast-database-vastdb-write, in schema dfl.
 
