@@ -1,6 +1,6 @@
 # F1-VSS 12 - Broadcast QC
 
-**Purpose:** automatically find broadcast faults (black frames, freezes, silence, missing timing graphics) in every incoming race.
+**Purpose:** find broadcast faults (black frames, freezes, silence) in a race, with a self-test that proves the checks work.
 
 Requires: `00-shared-context.md`.
 
