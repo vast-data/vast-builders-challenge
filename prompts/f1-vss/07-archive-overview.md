@@ -17,7 +17,7 @@ Follow the F1 context prompt (f1-vss/00-shared-context) and build your own small
 Steps
 1. List the races with retrieval-videos (explore): only the two whose names end in _race (f1-academy_race and formula-e_race). Show chunk count, about how many minutes of video (chunks x 30 s, nominal) and indexed segments. Check ingest health with retrieval-dashboard.
 2. App tab "Archive": a table of the two races with those numbers.
-3. App tab "Search": one search box over all races with retrieval-search. Group results by race and play each result's segment clip with retrieval-videos.
+3. App tab "Search": one search box over all races with retrieval-search. Group results by race and play each result's segment clip with retrieval-videos. Suggested searches: "driver in the car", "aerial view of the circuit", "sponsor logos on the barriers", "grandstand crowd". Search each race separately (camera_id) and merge: an unscoped search for "grandstand crowd" returns only football.
 4. Do not re-ingest the archive. Re-ingest is limited to 3 chunks and 30 seconds per request (one chunk in practice).
 
 Done when the minutes of video per race are shown and a query returns results from more than one race.

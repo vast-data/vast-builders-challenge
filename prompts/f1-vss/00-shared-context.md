@@ -30,6 +30,7 @@ UI rules for every demo
 - Cards: race, time as M:SS and score (2 decimals) on one line. Caption trimmed to its first sentence (about 90 characters, ending in "..."), expandable. Drop the "The video shows" lead-in. Never repeat the race inside its group.
 - Load a clip only when it is played, and show one player at a time (each 5 s clip is about 4.6 MB).
 - Counts read "N hits". Show a clear "no good hits" state instead of weak results.
+- Suggested searches: show a row of 3 to 4 buttons labelled "Suggested searches", using the queries the demo prompt lists. Clicking one runs that search right away and shows its results, as if it had been typed. Keep the free-text search box as well.
 
 Rules for every demo
 - Each demo builds its own app, with whatever setup it needs. Show every result in the app, not in files.

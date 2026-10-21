@@ -19,6 +19,7 @@ Steps
 2. For each segment, read its existing caption (reasoning_content) and flag a crash, spin, yellow flag or safety car when the caption mentions one from a keyword list you write (include "SAFETY CAR" and "YELLOW FLAG" banners). Ignore negations ("no safety car") and mentions of a replay. Offer a fast-replay option that runs the replay at 5x speed. Only the pipeline's models are available, so use the captions, not new model calls.
 3. Confirm a safety car or yellow flag only if two consecutive segments agree. A crash or spin may alert on a single hit. After an alert, keep that incident open until a caption says "green flag" or "safety car ending", so each incident raises one alert.
 4. The app shows a live alert feed. Each alert has its type, race time and the segment clip, played with retrieval-videos.
+5. Add a "Find an incident" search with Suggested searches: "safety car leading the field", "crash or collision", "cars in the pit lane", scoped to the replay race.
 
 Done when the race's safety-car period raises exactly one alert within 15 s of the first caption that mentions it (the on-screen banner may appear earlier, so latency measured from the banner is longer), and the app reports how many crashes and yellow flags were caught.
 ```

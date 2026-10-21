@@ -14,8 +14,6 @@ The infrastructure is already running, so you skip straight to the interesting p
 
 <p align="center"><img src="docs/images/vm-load.png" alt="The VM link on the VAST workshop home page" width="90%"></p>
 
-4. Open **Cursor** on the desktop, then open the `vast-builders-challenge` folder.
-
 ### Using Cursor
 
 Cursor is your coding agent. Describe what you want in plain language and let it work, like this:
@@ -65,13 +63,13 @@ We've ingested video for two use cases. Try one of these tracks:
 **Formula racing (F1 Academy / Formula E):**
 
 ```
-find every overtake into turn 1 and list the video and timestamp for each
+find the safety car on track and list the race, time and clip for each
 ```
 
 **Football archive (Bundesliga):**
 
 ```
-find goalkeepers saving a penalty, with results from at least two different decades
+find goalkeeper saves across the matches and group them by season
 ```
 
 Want to continue on a specific track? Ask Cursor to walk you through the prompts in [`prompts/`](prompts/):
