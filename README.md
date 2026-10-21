@@ -63,13 +63,13 @@ We've ingested video for two use cases. Try one of these tracks:
 **Formula racing (F1 Academy / Formula E):**
 
 ```
-find the safety car on track and list the race, time and clip for each
+find the turn 1 collision that brought out the safety car in the F1 Academy race and list the clips with timestamps
 ```
 
 **Football archive (Bundesliga):**
 
 ```
-find goalkeeper saves across the matches and group them by season
+find goalkeepers diving to stop a shot and group them by season
 ```
 
 Want to continue on a specific track? Ask Cursor to walk you through the prompts in [`prompts/`](prompts/):
