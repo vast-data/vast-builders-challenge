@@ -27,6 +27,9 @@ curl -s -X POST "$BACKEND/api/v1/agent/ask" \
 
 Response: `{ answer, tool_used ("search_hybrid"|"video_segments"), evidence }`.
 
+> ⚠️ The global form (no `original_video`) has returned 500 on the live backend. Scope the
+> question with `original_video`, or use `search-and-answer` below instead.
+
 ## Search + answer with filters — `POST /api/v1/agent/search-and-answer`
 
 Same body as `POST /search` (`retrieval/search`: `tags`, `time_filter`, `metadata_filters`, `min_similarity`…) → grounded answer + rich chunk evidence.
@@ -41,7 +44,7 @@ curl -s -X POST "$BACKEND/api/v1/agent/search-and-answer" \
 
 ## Agent tools — `GET/POST /api/v1/tools/*`
 
-Composable building blocks (same auth): `POST tools/search`, `GET tools/segments?original_video=`, `GET tools/segment?source=`, `GET tools/detections?source=`, `GET tools/explore`, `POST tools/synthesize`. Use these to gather evidence when you orchestrate multi-step reasoning yourself.
+Composable building blocks (same auth): `POST tools/search`, `GET tools/segments?original_video=`, `GET tools/segment?source=`, `GET tools/detections?source=`, `POST tools/synthesize`. Use these to gather evidence when you orchestrate multi-step reasoning yourself. For browsing what's indexed, use `GET /api/v1/videos/explore` (`retrieval/videos`) instead of `tools/explore` — the latter returns 500 on the live backend and has been followed by ~20s of 502s on every endpoint.
 
 ## Choosing an endpoint
 

@@ -40,23 +40,23 @@ Never search `team-configs/`, invent endpoints, or print credentials.
 ## Safety
 
 - Prefer **new** schema/table names for demos (e.g. `hackathon`, `demo_events`).
-- Do **not** drop or recreate `vss-collection` / `vss-prompts-events` unless the user explicitly insists — that breaks VSS search.
+- Do **not** drop or recreate `vss-collection` / `vss-events-collection` unless the user explicitly insists — that breaks VSS search.
 - Stay in **this team's** `VASTDB_BUCKET` only.
 
 ## Prereqs
 
-```bash
-pip install vastdb pyarrow
-```
+See [vast-database/README.md](../README.md#prerequisites-python--vastdb) for Python setup
+(the VM has no `pip`/`python`/`vastdb` out of the box). Resolve `$PY` from there before
+running anything below.
 
 ## Insert (script)
 
 [insert.py](insert.py) creates `hackathon.demo_events` if needed and inserts rows:
 
 ```bash
-python .cursor/skills/vast-database/vastdb-write/insert.py --example
-python .cursor/skills/vast-database/vastdb-write/insert.py --schema hackathon --table demo_events --json rows.json
-echo '[{"id":3,"label":"ok","score":0.5,"note":"x"}]' | python .cursor/skills/vast-database/vastdb-write/insert.py
+"$PY" .cursor/skills/vast-database/vastdb-write/insert.py --example
+"$PY" .cursor/skills/vast-database/vastdb-write/insert.py --schema hackathon --table demo_events --json rows.json
+echo '[{"id":3,"label":"ok","score":0.5,"note":"x"}]' | "$PY" .cursor/skills/vast-database/vastdb-write/insert.py
 ```
 
 Verify with `vast-database/vastdb-read` (`list_catalog.py` / `query.py --schema hackathon --table demo_events`).
@@ -121,6 +121,6 @@ with session.transaction() as tx:
 1. Confirm the target **schema / table** and column schema with the user before creating.
 2. Connect only to **`S3_ENDPOINT` (data VIP)**. Do not use QE for writes.
 3. Never copy `/config/` credentials into the repo.
-4. Refuse casual recreate/drop of `vss-collection` or `vss-prompts-events`.
+4. Refuse casual recreate/drop of `vss-collection` or `vss-events-collection`.
 5. After writes, prove with `query.py` or `list_catalog.py`.
 6. Do not write other teams’ buckets (identity policy + `insert.py` refuses a mismatched `--bucket`).

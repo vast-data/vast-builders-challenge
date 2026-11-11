@@ -61,7 +61,7 @@ print(c.get('vdb_endpoint') or '')
 
 If `/config/backend-secret.yaml` exists, read `vdb_endpoint` from its embedded `config.yaml` the same way. Do not invent the QE host.
 
-To force QE for a script: `VDB_ENDPOINT=<qe-url> python …/query.py`
+To force QE for a script: `VDB_ENDPOINT=<qe-url> "$PY" …/query.py` (see Prereqs below for `$PY`)
 
 **Note:** Data VIP (`S3_ENDPOINT` / ingest `vdbendpoint`) and QE (`vdb_endpoint`) are **different by design** — see `deployment/build-yamls`.
 
@@ -69,16 +69,16 @@ To force QE for a script: `VDB_ENDPOINT=<qe-url> python …/query.py`
 
 | Thing | Config key | Typical value |
 |-------|------------|---------------|
-| Database (bucket) | `VASTDB_BUCKET` | `team-<N>-vss-db` |
+| Database (bucket) | `VASTDB_BUCKET` | team-prefixed; use `$VASTDB_BUCKET`, not a guessed name |
 | Schema | `VDB_SCHEMA` | `vss-schema` |
 | Main table | `VDB_COLLECTION` | `vss-collection` |
-| Prompts table | `VDB_PROMPTS_COLLECTION` | `vss-prompts-events` |
+| Prompts table | `VDB_PROMPTS_COLLECTION` | `vss-events-collection` |
 
 ## Prereqs
 
-```bash
-pip install vastdb pyarrow pyyaml
-```
+See [vast-database/README.md](../README.md#prerequisites-python--vastdb) for Python setup
+(the VM has no `pip`/`python`/`vastdb` out of the box). Resolve `$PY` from there before
+running anything below.
 
 On the hackathon VM the data VIP is usually reachable directly — **no SSH tunnel required**.
 Only tunnel if connect fails from your network.
@@ -88,9 +88,9 @@ Only tunnel if connect fails from your network.
 [list_catalog.py](list_catalog.py) lists **this team’s** `VASTDB_BUCKET` by default:
 
 ```bash
-python .cursor/skills/vast-database/vastdb-read/list_catalog.py
-python .cursor/skills/vast-database/vastdb-read/list_catalog.py --bucket "$VASTDB_BUCKET"
-python .cursor/skills/vast-database/vastdb-read/list_catalog.py --all   # every DB in catalog
+"$PY" .cursor/skills/vast-database/vastdb-read/list_catalog.py
+"$PY" .cursor/skills/vast-database/vastdb-read/list_catalog.py --bucket "$VASTDB_BUCKET"
+"$PY" .cursor/skills/vast-database/vastdb-read/list_catalog.py --all   # every DB in catalog
 ```
 
 ## Select rows
@@ -98,12 +98,16 @@ python .cursor/skills/vast-database/vastdb-read/list_catalog.py --all   # every 
 Prefer [query.py](query.py) (do not name a file `select.py` — it shadows stdlib `select` and breaks `vastdb`). It **omits `vectors` / `vectors_visual`** unless `--include-vectors`.
 
 ```bash
-python .cursor/skills/vast-database/vastdb-read/query.py
-python .cursor/skills/vast-database/vastdb-read/query.py --table vss-prompts-events --limit 5
-python .cursor/skills/vast-database/vastdb-read/query.py --columns pk,filename,source --limit 20
+"$PY" .cursor/skills/vast-database/vastdb-read/query.py
+"$PY" .cursor/skills/vast-database/vastdb-read/query.py --table "$VDB_PROMPTS_COLLECTION" --limit 5
+"$PY" .cursor/skills/vast-database/vastdb-read/query.py --columns pk,filename,source --limit 20
 ```
 
 Never call `table.select()` with no columns on `vss-collection` — vector types can crash the SDK.
+
+`query.py` may print an `Exception ignored ... vastdb.errors.MissingTransaction` traceback
+on stderr after it returns rows. It still exits 0 with the correct output — treat it as
+noise, not a failure.
 
 ```python
 import vastdb

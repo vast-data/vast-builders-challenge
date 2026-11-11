@@ -8,7 +8,7 @@ description: >-
 
 # Retrieval: suggest prompts (vss2)
 
-Returns the latest batch of **search prompt suggestions** + **key events** the enrichment `prompt-suggester` computed from recent segments and wrote to VastDB (`vss-prompts-events`). Requires a JWT (`retrieval/login`).
+Returns the latest batch of **search prompt suggestions** + **key events** the enrichment `prompt-suggester` computed from recent segments and wrote to VastDB (the `VDB_PROMPTS_COLLECTION` table). Requires a JWT (`retrieval/login`).
 
 ## Request — `GET /api/v1/suggestions`
 
@@ -16,11 +16,15 @@ Returns the latest batch of **search prompt suggestions** + **key events** the e
 curl -s "$BACKEND/api/v1/suggestions" -H "Authorization: Bearer $TOKEN"
 ```
 
+This call has taken **about 110–115s** and returned **about 2.5 MB** on every run observed so
+far. Use a long client timeout (180s) and call it once per session and cache the result —
+don't poll it.
+
 Content is ACL-filtered to the caller. Use the returned prompts as ready-to-run `query` strings for `retrieval/search`, and key events as highlights.
 
 ## Depends on the enrichment pipeline
 
-These come from the scheduled `prompt-suggester` enrichment job writing to `vss-prompts-events`. If empty:
+These come from the scheduled `prompt-suggester` enrichment job writing to the prompts table. If empty:
 - The enrichment job may not have run yet.
 - Lookback window found no new segments — logs show `[SUGGEST] No new videos in lookback window`.
 - Check `retrieval/dashboard` that segments are actually being indexed.

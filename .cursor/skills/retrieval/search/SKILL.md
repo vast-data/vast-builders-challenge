@@ -32,12 +32,12 @@ curl -s -X POST "$BACKEND/api/v1/search" \
 |-------|---------|-------|
 | `query` | — | required natural-language text |
 | `top_k` | 15 | rows returned (1–100) |
-| `llm_top_n` | 3 | top chunks sent to the LLM synthesizer |
+| `llm_top_n` | 3 | top chunks sent to the LLM synthesizer; minimum **1** (422 below that) — synthesis cannot be turned off |
 | `min_similarity` | 0.1 | threshold; 0.3–0.8 recommended |
 | `tags` | `[]` | tag filter |
-| `time_filter` | `all` | `5m`/`15m`/`1h`/`24h`/`7d`/`custom` |
+| `time_filter` | `all` | `5m`/`15m`/`1h`/`24h`/`7d`/`custom`; a relative window (`24h`, `7d`) returns nothing if the footage is older than the window |
 | `custom_start_date`/`custom_end_date` | — | ISO 8601, with `time_filter:"custom"` |
-| `metadata_filters` | `{}` | dict of column→value (e.g. `location`, `camera_id`, `capture_type`) |
+| `metadata_filters` | `{}` | dict of column→value (e.g. `location`, `camera_id`, `capture_type`); an unknown key 500s — resolve valid keys via `/metadata/schema` first |
 | `include_public` / `public_only` | true / false | scope |
 | `hybrid_text_weight` | backend default | caption vs visual blend (0–1) |
 | `system_prompt` | — | override the synthesis system prompt |

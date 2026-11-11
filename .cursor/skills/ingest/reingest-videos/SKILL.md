@@ -60,7 +60,7 @@ Authenticate with:
 ```bash
 TOKEN=$(curl -s -X POST "$BACKEND/api/v1/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"username":"<username>","password":"<password>"}' \
+  -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
 ```
 

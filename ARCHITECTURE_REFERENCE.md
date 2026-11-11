@@ -8,21 +8,18 @@ there; this doc doesn't repeat them.
 
 ## Models (NVIDIA on CoreWeave)
 
-Inference for the pipeline runs on shared **GPU endpoints** (NVIDIA Cosmos + YOLO + Canary). You don’t deploy the models yourself.
+Inference for the pipeline runs on shared **GPU endpoints** (NVIDIA Cosmos + YOLO + Canary). You don’t deploy the models yourself, and you don't call them directly either — they're reachable only through the pipeline API.
 
-| Model | Role in VSS | Endpoint (env var, in `/config/<team>.config`) |
-|-------|-------------|----------|
-| **NVIDIA Cosmos3-Reason** (`nvidia/cosmos3-reason`) | Video understanding / reasoning over segments | `$COSMOS3_REASON_URL` |
-| **YOLO11** (`yolo11s`, Ultralytics) | Object detection (bounding boxes / labels) | `$YOLO_URL` |
-| **NVIDIA Cosmos Embed1** (`nvidia/cosmos-embed1`) | Text and visual embeddings (256-dim) for hybrid search | `$COSMOS_EMBED1_URL` |
-| **NVIDIA Canary-1B** (`nvidia/canary-1b`) | Speech-to-text (ASR) + speech translation — **not** Cosmos; NeMo audio model | `$CANARY_1B_URL` |
-
-Each model has its own host and port; don't assume they share a host. No auth token is
-needed to call them. Ask Cursor / see `.cursor/skills/gpu/` for how to call each model.
+| Model | Role in VSS |
+|-------|-------------|
+| **NVIDIA Cosmos3-Reason** (`nvidia/cosmos3-reason`) | Video understanding / reasoning over segments |
+| **YOLO11** (`yolo11s`, Ultralytics) | Object detection (bounding boxes / labels) |
+| **NVIDIA Cosmos Embed1** (`nvidia/cosmos-embed1`) | Text and visual embeddings (256-dim) for hybrid search |
+| **NVIDIA Canary-1B** (`nvidia/canary-1b`) | Speech-to-text (ASR) + speech translation — **not** Cosmos; NeMo audio model |
 
 Ingest and search call **Cosmos3-Reason**, **YOLO11**, and **Embed1** through your pipeline and backend today.
 
-**Canary-1B** is not wired into the current VSS pipeline. If you want audio transcripts, spoken-word search, or speech translation in your demo — let your imagination go and hook it in. **Ask Cursor how to use Canary-1B** against your stack and skills.
+**Canary-1B** is not wired into the current VSS pipeline. If you want audio transcripts, spoken-word search, or speech translation in your demo, that would need to be wired in through the pipeline API, not a direct call to the model.
 
 ---
 

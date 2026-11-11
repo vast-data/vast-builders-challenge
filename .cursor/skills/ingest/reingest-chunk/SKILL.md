@@ -48,7 +48,7 @@ Login:
 ```bash
 TOKEN=$(curl -s -X POST "$BACKEND/api/v1/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"username":"<USERNAME>","password":"<PASSWORD>"}' \
+  -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
 ```
 
@@ -121,7 +121,7 @@ If the user describes visual content or an event, use semantic search:
 curl -s -X POST "$BACKEND/api/v1/search" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"query":"<description>","top_k":30,"llm_top_n":0,"min_similarity":0.3,"include_public":true}'
+  -d '{"query":"<description>","top_k":30,"llm_top_n":1,"min_similarity":0.3,"include_public":true}'
 ```
 
 Use `chunk_results`, not individual `results`. Each chunk result contains the

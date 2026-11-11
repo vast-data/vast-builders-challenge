@@ -7,7 +7,6 @@ Agent skills for working with the VSS2 video search stack. Each skill lives in i
 ```
 .cursor/skills/
 ├── deployment/             # Deploy retrieval K8s apps + hackathon mini-apps
-├── gpu/                    # Health + smoke-test model endpoints
 ├── ingest/                 # Upload new video or re-ingest indexed archive
 ├── retrieval/              # Query and explore indexed video
 └── vast-database/          # Raw VastDB SDK read/write (not the JWT API)
@@ -15,7 +14,7 @@ Agent skills for working with the VSS2 video search stack. Each skill lives in i
 
 Runtime configuration is mounted outside the repo at absolute `/config/`:
 
-- `/config/<team>.config` — team credentials and GPU bearer
+- `/config/<team>.config` — team credentials. Models are reached only through the pipeline API; there's no direct model access or GPU bearer here.
 - `/config/team-<num>-k8s.yaml` — Kubernetes access (e.g. `/config/team-1-k8s.yaml`)
 - `/config/backend-secret.yaml` — retrieval backend secret (and `/config/vss-cli-secret.yaml` when aligning ingest keys)
 
@@ -73,16 +72,6 @@ Retrieval-side Kubernetes apps (`deployments/vss-k8s-application/` in the bluepr
 | [deploy-app-no-registry](skills/deployment/deploy-app-no-registry/SKILL.md) | On-cluster mini-app at `/app` on the team host (no Docker/registry) |
 
 → [deployment/README.md](skills/deployment/README.md)
-
-## GPU models
-
-Shared endpoint addresses are documented in [gpu/README.md](skills/gpu/README.md); authentication comes from `/config/<team>.config`.
-
-| Skill | Summary |
-|-------|---------|
-| [gpu README](skills/gpu/README.md) | What each model does + curl examples (Cosmos3-Reason, YOLO, Embed1, Canary) |
-| [model-health](skills/gpu/model-health/SKILL.md) | Liveness/readiness for all four |
-| [model-smoke-test](skills/gpu/model-smoke-test/SKILL.md) | Minimal real inference per model |
 
 ## Typical flows
 

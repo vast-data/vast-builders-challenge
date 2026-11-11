@@ -41,26 +41,6 @@ WANDB_TEAM=<wandb-team>
 # Often the same as the team name. One project per team.
 WANDB_PROJECT=<wandb-project>
 
-# ---- GPU model endpoints ----
-# Used by the gpu/ skills. Each model has its own host and port; they are not the same
-# across models, so don't derive one from another. No auth token is needed to call them.
-COSMOS3_REASON_URL=<http://host:port>
-YOLO_URL=<http://host:port>
-COSMOS_EMBED1_URL=<http://host:port>
-CANARY_1B_URL=<http://host:port>
-
-# Model ids the smoke tests interpolate. If these are unset, ask the endpoint instead:
-#   curl -s "$ENDPOINT/v1/models"
-# and use the id it returns. Cosmos3-Reason and Embed1 serve /v1/models; YOLO and Canary may not,
-# and a 404 there does not mean the model is down.
-# Known-good ids (public model names, not secrets):
-COSMOS3_REASON_MODEL=nvidia/cosmos3-reason
-COSMOS_EMBED1_MODEL=nvidia/cosmos-embed1
-# Canary's id was not in the team config. Left unset on purpose: discover it from
-# /v1/models rather than guessing. Health checks pass without it; only transcription
-# needs it. Setting it to a placeholder would break the discover-if-unset path.
-#CANARY_1B_MODEL=
-
 # ---- Where the variables above come from ----
 # All of them live in the single /config/<team>.config file on the VM, which the
 # environment should export. If one is missing from the environment, source that file.
