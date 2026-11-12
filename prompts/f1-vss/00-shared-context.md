@@ -12,7 +12,7 @@ Prompt ID: f1-vss/00-shared-context
 Context for every F1 / Formula E demo. This prompt builds nothing: it sets the rules each demo prompt follows. Follow .cursor/rules/build-day.mdc and use the matching skill in .cursor/skills/ for every platform call. Do not invent your own storage layer, endpoints or model hosts.
 
 What already exists (do not rebuild it):
-- Two races, f1-academy_race and formula-e_race, ingested and indexed (about the first 15 minutes of each broadcast): segmented, captioned, embedded, YOLO detections stored. Check with retrieval-videos (explore) and retrieval-dashboard.
+- Two races, f1-academy_race (92 chunks, about 46 minutes) and formula-e_race (101 chunks, about 50 minutes), ingested and indexed: segmented, captioned, embedded, YOLO detections stored. Check with retrieval-videos (explore) and retrieval-dashboard.
 - Re-ingest with ingest-reingest-videos (max 3 chunks and 30 seconds per request, so one chunk in practice). Uploading new video is disabled.
 - Search: retrieval-search. Grounded Q&A: retrieval-agent-qa. Playback and detections: retrieval-videos.
 - The models run inside the VSS pipeline; reach them only through the skills.
@@ -20,7 +20,9 @@ What already exists (do not rebuild it):
 
 Conventions
 - Python: python3 -m venv .venv. If it fails with "ensurepip is not available", use python3 -m venv --without-pip .venv, then get-pip.py.
-- One race: search with metadata_filters {"camera_id": ...} (formula_e_broadcast-1, f1_academy_broadcast-1). Explore returns 100 chunks per call, so page with offset and filter by file name.
+- F1 footage: filter search with metadata_filters {"camera_id": "f1-01"}. That value covers both races, so keep only the hits for the race you want by file name: original_video / source contains f1-academy_race or formula-e_race.
+- To list a race's chunks, call explore with location=england (returns the F1 chunks only, 100 per call, so two pages with offset), then filter by file name the same way.
+- A wrong camera_id returns zero results with no error, so check values with /metadata/values when a filtered search comes back empty.
 - race_id = the file name between the YYYYMMDD_HHMMSS_ prefix and _chunk_NNNN. Race time = chunk_index x 30 + offset (nominal).
 - Clips: play the 5 s segment clips from search results through a small server-side proxy in your app. Never show playback_url in the UI; it carries a token.
 - Run the app on the VM on its own port.

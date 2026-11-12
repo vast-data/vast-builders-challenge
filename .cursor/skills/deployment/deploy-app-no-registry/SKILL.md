@@ -137,6 +137,16 @@ kubectl -n "$NS" create secret generic "${APP_NAME}-vss-creds" \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
+**No VastDB access from the deployed app.** This Secret only holds `VSS_URL` /
+`VSS_USERNAME` / `VSS_PASSWORD`, and `python:3.12-slim` has no `vastdb` package — a
+deployed app can call the VSS API but cannot read or write VastDB tables as deployed.
+If the app needs table data: do the VastDB reads/writes from the VM with the
+`vast-database` skills, write the rows it needs to a small JSON file in the app
+directory, and ship that file in the ConfigMap (step 2) — label it in the app as a
+snapshot with its time. Re-create the ConfigMap and restart the Deployment to refresh
+it (see Update loop below). Keep the snapshot small; the ConfigMap limit is still
+~1 MiB total.
+
 ### 4. Deployment + Service + Ingress
 
 Ingress **must** reuse the team's host and path `/app` (nginx rewrite strips the prefix
@@ -265,10 +275,17 @@ kubectl -n "$NS" rollout status deploy/"$APP_NAME"
 kubectl -n "$NS" get pods,svc,ingress -l app="$APP_NAME"
 kubectl -n "$NS" logs -l app="$APP_NAME" --tail=100
 
-curl -sS -o /dev/null -w "%{http_code}\n" "http://${APP_HOST}/app"
+for i in $(seq 1 10); do
+  code=$(curl -sS -o /dev/null -w "%{http_code}" "http://${APP_HOST}/app")
+  [ "$code" = 200 ] && break
+  sleep 3
+done
+echo "$code"
 curl -sS "http://${APP_HOST}/app/health"
 ```
 
+A 503 in the first few seconds after rollout is normal while the Ingress picks up the
+new pod; only a 503 that persists past these retries (~30 s) means something is wrong.
 These two `curl`s are an **in-cluster** check from the VM only — that host doesn't load
 from an attendee's laptop. Tell the user to open `$APP_URL`
 (`https://team-<N>-app.thecosmoslabs.com/app/`) instead; Cloudflare Access may ask them
@@ -295,7 +312,9 @@ the Ingress / pod — do not fall back to a local server.
 | Pod crashes | `kubectl logs`; missing dep or not binding `0.0.0.0`. |
 | 401 from VSS | Secret vs `/config/<team>.config`; see `retrieval/login`. |
 | `/app` 404 / wrong backend | Check rewrite annotation + path `/app(/|$)(.*)` on this team's host. |
+| 503 right after deploy | Wait and retry — Ingress hasn't picked up the new pod yet. |
 | Wrong namespace | Only **this** team (`$USERNAME` / confirmed `NS`). |
+| App needs VastDB table data | Pod has no VastDB credentials or package. Read the table from the VM and ship a JSON snapshot in the ConfigMap. |
 
 ## Agent instructions
 

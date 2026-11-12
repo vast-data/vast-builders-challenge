@@ -10,15 +10,34 @@ description: >-
 
 Returns the latest batch of **search prompt suggestions** + **key events** the enrichment `prompt-suggester` computed from recent segments and wrote to VastDB (the `VDB_PROMPTS_COLLECTION` table). Requires a JWT (`retrieval/login`).
 
+## Starter queries
+
+Offer these first — no API call needed, nobody waits. Every one was run against the live
+stack and returned relevant hits. They're a fixed starting set; `/suggestions` below gives
+generated ones for the current archive.
+
+Formula racing (`metadata_filters: {"camera_id": "f1-01"}`):
+`safety car leading the field`, `Red Bull logo`, `Crypto.com logo`, `Hard Rock logo`,
+`Nissan logo`, `grandstand crowd`.
+
+Bundesliga football (`metadata_filters: {"camera_id": "bundesliga-01"}`):
+`Red jersey player runs with ball toward goal`, `Crowded stadium with red and white fans
+waving`, `goal celebration`, `handshakes`, `mascots`, `scarves`.
+
 ## Request — `GET /api/v1/suggestions`
 
+This call has taken **about 110–117s** and returned **about 2.5 MB** on every run observed
+so far (it's regenerated each time, not cached) — too slow to block a conversation or an
+app's page load on. Start it in the background, keep going with the starter queries above,
+and use the result when it arrives. Call it at most once per session and reuse the saved
+response; only wait on it synchronously if the user explicitly asks for generated
+suggestions right now, and tell them it takes about two minutes.
+
 ```bash
-curl -s "$BACKEND/api/v1/suggestions" -H "Authorization: Bearer $TOKEN"
+curl -s --max-time 180 "$BACKEND/api/v1/suggestions" -H "Authorization: Bearer $TOKEN" -o /tmp/suggestions.json &
 ```
 
-This call has taken **about 110–115s** and returned **about 2.5 MB** on every run observed so
-far. Use a long client timeout (180s) and call it once per session and cache the result —
-don't poll it.
+The file is ready to read once that background job finishes.
 
 Content is ACL-filtered to the caller. Use the returned prompts as ready-to-run `query` strings for `retrieval/search`, and key events as highlights.
 

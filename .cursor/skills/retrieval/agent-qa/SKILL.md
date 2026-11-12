@@ -16,19 +16,21 @@ Thin agent that plans → searches/reads VastDB tools → returns a grounded ans
 ```bash
 curl -s -X POST "$BACKEND/api/v1/agent/ask" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"question":"Was anyone near the loading dock after 6pm?","top_k":10}'
+  -d '{"question":"Was anyone near the loading dock after 6pm?","top_k":10,"original_video":"<from explore or search results>"}'
 ```
 
 | Field | Default | Behavior |
 |-------|---------|----------|
 | `question` | — | required |
-| `original_video` | null | if set → answer from **that** parent video's segments; else global hybrid search |
+| `original_video` | null | if set → answer from **that** parent video's segments; else global hybrid search — **but the global path returns 500 on this stack every time (see below), so treat this field as required** |
 | `top_k` | 10 | segments/results considered (1–50) |
 
 Response: `{ answer, tool_used ("search_hybrid"|"video_segments"), evidence }`.
 
-> ⚠️ The global form (no `original_video`) has returned 500 on the live backend. Scope the
-> question with `original_video`, or use `search-and-answer` below instead.
+**Always pass `original_video` to `/agent/ask`** — it answers questions about one video.
+For a question across the archive, use `/agent/search-and-answer` below. Do not call
+`/agent/ask` without `original_video`: on this stack it returns 500 ("Internal Server
+Error") every time, after 12-22 s.
 
 ## Search + answer with filters — `POST /api/v1/agent/search-and-answer`
 
@@ -52,7 +54,7 @@ Composable building blocks (same auth): `POST tools/search`, `GET tools/segments
 
 ## Choosing an endpoint
 
-- General question over everything → `POST /agent/ask`.
+- General question over everything → `POST /agent/search-and-answer`.
 - Question about one known video → `POST /agent/ask` with `original_video`.
 - Question needing filters (time/location/tags) + evidence → `POST /agent/search-and-answer`.
 - Whole-video summary/report → `retrieval/videos` `POST /videos/synthesize`.

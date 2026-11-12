@@ -19,9 +19,9 @@ Run a track's `00` context prompt first. It builds nothing; it sets the rules an
 
 ## What to know about the footage
 
-- Formula racing: two races (`f1-academy_race`, `formula-e_race`), about the first 15 minutes of each broadcast.
-- Bundesliga: five matches of about 15 minutes each, from 2008-09 to 2026-27.
-- Everything is stored as 30 s chunks of 5 s segments. Search takes about 3 s.
+- Formula racing: two races (`f1-academy_race`, 92 chunks/about 46 min; `formula-e_race`, 101 chunks/about 50 min).
+- Bundesliga: more than 30 full matches (34), about 100 minutes each, from 1970-71 to 2026-27.
+- Everything is stored as 30 s chunks of 5 s segments. Search takes 5-20 s.
 
 ## Skills the prompts use
 
