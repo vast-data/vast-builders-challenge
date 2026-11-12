@@ -45,8 +45,9 @@ Thumbs.db
 tmp/
 resp.json
 
-# --- organizer verification script (internal) ---
+# --- organizer verification scripts (internal) ---
 verify-vm.sh
+check-installed.sh
 
 # --- live screen ---
 screen/
