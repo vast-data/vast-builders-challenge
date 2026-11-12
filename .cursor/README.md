@@ -85,4 +85,4 @@ Retrieval-side Kubernetes apps (`deployments/vss-k8s-application/` in the bluepr
 
 **VastDB custom tables** → `vast-database/vastdb-write` (create/insert on data VIP) → `vast-database/vastdb-read` (select)
 
-**Hackathon mini-app (no Docker)** → write small app → `deployment/deploy-app-no-registry` → [workshop.thecosmoslabs.com](https://workshop.thecosmoslabs.com) → **App**
+**Hackathon mini-app (no Docker)** → write small app → `deployment/deploy-app-no-registry` → open `https://team-<N>-app.thecosmoslabs.com/app/` (`$APP_URL`, `<N>` = team number)
