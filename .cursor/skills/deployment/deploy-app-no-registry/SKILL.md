@@ -67,6 +67,11 @@ TEAM_CONFIG="${TEAM_CONFIGS[0]}"
 USERNAME=$(grep '^USERNAME=' "$TEAM_CONFIG" | cut -d= -f2-)
 INGRESS_URL=$(grep '^INGRESS_URL=' "$TEAM_CONFIG" | cut -d= -f2-)
 PASSWORD=$(grep '^PASSWORD=' "$TEAM_CONFIG" | cut -d= -f2-)
+# VastDB values, for apps that read/write the team's tables directly (never echo these):
+S3_ENDPOINT=$(grep '^S3_ENDPOINT=' "$TEAM_CONFIG" | cut -d= -f2-)
+ACCESS_KEY=$(grep '^ACCESS_KEY=' "$TEAM_CONFIG" | cut -d= -f2-)
+SECRET_KEY=$(grep '^SECRET_KEY=' "$TEAM_CONFIG" | cut -d= -f2-)
+VASTDB_BUCKET=$(grep '^VASTDB_BUCKET=' "$TEAM_CONFIG" | cut -d= -f2-)
 
 # Namespace = this team only (e.g. team-17). Confirm with the user if unclear.
 NS="$USERNAME"
@@ -93,7 +98,7 @@ The app calls the existing VSS backend at `$INGRESS_URL` (see `retrieval/login`,
 ```
 - [ ] 1. Write app files (keep under ~1 MiB total); routes at / (Ingress strips /app)
 - [ ] 2. Create ConfigMap from app code
-- [ ] 3. Create Secret from team VSS creds
+- [ ] 3. Create Secret from team VSS + VastDB creds
 - [ ] 4. Apply Deployment + Service + Ingress (host=$APP_HOST, path=/app)
 - [ ] 5. Verify pod Running + curl http://$APP_HOST/app (in-cluster check; public URL is $APP_URL)
 ```
@@ -116,7 +121,11 @@ Serve internally at `/` and `/health`. Ingress rewrites `/app` → `/`.
 Users open the app at `$APP_URL` (`https://team-<N>-app.thecosmoslabs.com/app/`)
 — not via `$INGRESS_URL` or `http://$APP_HOST/app`.
 
-**ConfigMap limits:** total data ≈ 1 MiB. No large models, videos, or `node_modules`.
+**ConfigMap limits:** `kubectl apply`'s client-side path stores a copy of the object in
+an annotation, which 403s around ~250 KB of app files ("metadata.annotations: Too long:
+may not be more than 262144 bytes") well before the ~1 MiB ConfigMap limit itself. Use
+`--server-side` (step 2) to actually get the ~1 MiB limit. No large models, videos, or
+`node_modules` either way.
 
 ### 2. ConfigMap (code)
 
@@ -126,42 +135,64 @@ APP_NAME=hackathon-app        # k8s resource prefix; lowercase DNS-1123
 
 kubectl -n "$NS" create configmap "${APP_NAME}-code" \
   --from-file="$APP_DIR" \
-  --dry-run=client -o yaml | kubectl apply -f -
+  --dry-run=client -o yaml | kubectl apply --server-side -f -
 ```
 
 After code changes: re-run the same `create … | apply`, then restart the Deployment
-(ConfigMap updates are **not** picked up by a running pod automatically).
+(ConfigMap updates are **not** picked up by a running pod automatically). Re-applying
+with `--server-side` can report a field-manager conflict on a second apply; add
+`--force-conflicts` only if that happens.
 
-### 3. Secret (VSS credentials)
+### 3. Secret (VSS + VastDB credentials)
 
 ```bash
-kubectl -n "$NS" create secret generic "${APP_NAME}-vss-creds" \
+kubectl -n "$NS" create secret generic "${APP_NAME}-creds" \
   --from-literal=VSS_URL="$INGRESS_URL" \
   --from-literal=VSS_USERNAME="$USERNAME" \
   --from-literal=VSS_PASSWORD="$PASSWORD" \
+  --from-literal=VASTDB_ENDPOINT="$S3_ENDPOINT" \
+  --from-literal=VASTDB_ACCESS_KEY="$ACCESS_KEY" \
+  --from-literal=VASTDB_SECRET_KEY="$SECRET_KEY" \
+  --from-literal=VASTDB_BUCKET="$VASTDB_BUCKET" \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-**No VastDB access from the deployed app.** This Secret only holds `VSS_URL` /
-`VSS_USERNAME` / `VSS_PASSWORD`, and `python:3.12-slim` has no `vastdb` package and no
-`ffmpeg` — a deployed app can call the VSS API but cannot read or write VastDB tables,
-or run binaries that aren't in the base image, as deployed. Three cases:
+**The app can use VastDB directly.** List `vastdb` in the app's `requirements.txt` (the
+skill already runs `pip install -r requirements.txt` at container start; `pyarrow`
+comes with it) and connect with the `VASTDB_*` env vars this Secret now carries:
 
-- **Reading table data:** do the VastDB read from the VM with the `vast-database`
-  skills, write the rows it needs to a small JSON file in the app directory, and ship
-  that file in the ConfigMap (step 2) — label it in the app as a snapshot with its time.
-- **Saving user actions** (an accept/reject set, a licence, a usage event): keep the
-  state in the app's memory and add an export endpoint; a VM-side script reads that
-  export and writes it to VastDB with the `vast-database` skills, then re-creates the
-  ConfigMap with the refreshed snapshot.
-- **Features needing a binary** (`ffmpeg`, etc.): run it on the VM, not in the pod, and
-  ship its results as a snapshot the same way.
+```python
+import vastdb
+endpoint = VASTDB_ENDPOINT if VASTDB_ENDPOINT.startswith(("http://", "https://")) else f"http://{VASTDB_ENDPOINT}"
+session = vastdb.connect(endpoint=endpoint, access=VASTDB_ACCESS_KEY, secret=VASTDB_SECRET_KEY, ssl_verify=False)
+with session.transaction() as tx:
+    bucket = tx.bucket(VASTDB_BUCKET)
+    ...
+```
 
-Either way, re-create the ConfigMap and restart the Deployment to refresh the snapshot
-(see Update loop below). Keep the snapshot small; the ConfigMap limit is still ~1 MiB
-total. Two cautions: in-memory app state is lost on restart and shared by every viewer
-of the URL, so export it before refreshing the snapshot; and `--from-file=<dir>` skips
-subdirectories, so keep app files flat.
+See the `vast-database` skills for schema/table creation, inserts, reads and deletes —
+the same patterns work from inside the pod. Installing `vastdb` adds about 20 s to pod
+startup (closer to 30 s total vs. 6-13 s without it), so the first check after a deploy
+or restart should retry — the Verify step below already does.
+
+Three cases for a deployed app and VastDB:
+
+- **Reading table data:** the app reads VastDB directly with the snippet above.
+- **Saving user actions** (an accept/reject set, a licence, a usage event): the app
+  writes to VastDB directly, to the team's own tables. Anything the app keeps only in
+  memory is lost on restart and shared by every viewer of the URL, so write what
+  matters to a table rather than relying on in-memory state.
+- **Features needing a binary** (`ffmpeg`, etc.): this still runs on the VM — the image
+  has no `ffmpeg` — with its results written to a table (or shipped as a file if
+  simpler); the app can then read those results from the table directly.
+
+Two safety rules:
+- Keys stay server-side: never send the VastDB keys (or the VSS password or token) to
+  the browser — never put them in the page, a URL, or an API response.
+- Same table rules as on the VM: write only to the team's own tables; never drop,
+  recreate, or write to `vss-collection` or `vss-events-collection`.
+
+`--from-file=<dir>` (step 2) still skips subdirectories, so keep app files flat.
 
 ### 4. Deployment + Service + Ingress
 
@@ -197,21 +228,9 @@ spec:
         env:
         - name: PORT
           value: "${APP_PORT}"
-        - name: VSS_URL
-          valueFrom:
-            secretKeyRef:
-              name: ${APP_NAME}-vss-creds
-              key: VSS_URL
-        - name: VSS_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: ${APP_NAME}-vss-creds
-              key: VSS_USERNAME
-        - name: VSS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: ${APP_NAME}-vss-creds
-              key: VSS_PASSWORD
+        envFrom:
+        - secretRef:
+            name: ${APP_NAME}-creds
         volumeMounts:
         - name: code
           mountPath: /code
@@ -328,13 +347,14 @@ after a restart can hit the old pod and show stale data.
 | New hostname for the app | Wrong — Ingress host is the host in `$INGRESS_URL` (the team's existing VSS host), not a new one. |
 | Ingress path `/` or random path | Wrong — path must be `/app`. |
 | `ImagePullBackOff` | Cluster must pull Docker Hub; ask organizers if blocked. |
-| ConfigMap too large | Trim assets; stay under ~1 MiB. |
+| ConfigMap too large | Trim assets; stay under ~1 MiB total (see also the `apply` row below). |
 | Pod crashes | `kubectl logs`; missing dep or not binding `0.0.0.0`. |
 | 401 from VSS | Secret vs `/config/<team>.config`; see `retrieval/login`. |
 | `/app` 404 / wrong backend | Check rewrite annotation + path `/app(/|$)(.*)` on this team's host. |
 | 503 right after deploy | Wait and retry — Ingress hasn't picked up the new pod yet. |
 | Wrong namespace | Only **this** team (`$USERNAME` / confirmed `NS`). |
-| App needs VastDB table data | Pod has no VastDB credentials or package. Read the table from the VM and ship a JSON snapshot in the ConfigMap. |
+| App needs VastDB | Add `vastdb` to `requirements.txt` and use the `VASTDB_*` env vars from the Secret; the pod reads and writes the team's tables directly. |
+| `apply` fails well under ~1 MiB | Client-side `apply` 403s around ~250 KB (annotation size limit) — use `kubectl apply --server-side` (step 2) to get the real ~1 MiB limit. |
 | Page loads but its API calls 404 | Opened without the trailing slash, or the page uses absolute URLs. Use `/app/` and relative URLs. |
 
 ## Agent instructions

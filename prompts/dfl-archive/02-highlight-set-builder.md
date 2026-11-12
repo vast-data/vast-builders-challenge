@@ -18,7 +18,7 @@ Steps
 2. Each candidate has Accept and Reject buttons and plays its clip with retrieval-videos. Merge neighbouring segments from the same match into one item.
 3. A "Set" panel lists accepted items with match, season, time range and caption.
 4. A dataset card, shown in the app: topic, number of items, total seconds, items per match and season, and how many were rejected.
-5. Save: the deployed app has no VastDB access, so keep accept/reject state in the app and offer an export of the set; save the exported set to the dfl schema from the VM with vast-database-vastdb-write (a table, not a file), then show the saved set in the app from a snapshot, labelled with its save time.
+5. Save the set to the dfl schema with vast-database-vastdb-write (a table, not a file), directly from the app (list `vastdb` in its requirements.txt and connect with the `VASTDB_*` env vars, per deployment-deploy-app-no-registry).
 
 Done when a set of at least 8 accepted items is saved and the card shows counts per match.
 ```

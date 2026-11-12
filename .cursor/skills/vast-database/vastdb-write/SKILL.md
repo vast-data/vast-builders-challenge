@@ -15,6 +15,10 @@ for DDL/DML.
 
 Identity policy still applies: only this team's `VASTDB_BUCKET`. Other buckets → 403.
 
+A deployed hackathon app can use this same SDK and these same patterns from inside its
+pod, with the `VASTDB_*` env vars that `deployment-deploy-app-no-registry`'s Secret
+provides — see that skill for the Secret and connection snippet.
+
 ## Endpoint (data VIP only)
 
 ```bash
