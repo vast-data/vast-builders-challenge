@@ -42,6 +42,10 @@ curl -s -X POST "$BACKEND/api/v1/agent/search-and-answer" \
 
 `evidence` includes `chunks[]` (`original_video`, `similarity_score`, `best_match_start_sec/end_sec`, `preview_source`), timings, and `llm_synthesis`.
 
+`search-and-answer` has the same latency profile as `/search` (measured ~15-25 s by
+default, ~4-10 s with the `system_prompt` tip) — see [retrieval/search's Latency
+section](../search/SKILL.md#latency).
+
 ## Agent tools — `GET/POST /api/v1/tools/*`
 
 Composable building blocks (same auth): `POST tools/search`, `GET tools/segments?original_video=`, `GET tools/segment?source=`, `GET tools/detections?source=`, `POST tools/synthesize`. Use these to gather evidence when you orchestrate multi-step reasoning yourself. For browsing what's indexed, use `GET /api/v1/videos/explore` (`retrieval/videos`) instead of `tools/explore` — the latter returns 500 on the live backend and has been followed by ~20s of 502s on every endpoint.

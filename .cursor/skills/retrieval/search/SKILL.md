@@ -42,6 +42,19 @@ curl -s -X POST "$BACKEND/api/v1/search" \
 | `hybrid_text_weight` | backend default | caption vs visual blend (0–1) |
 | `system_prompt` | — | override the synthesis system prompt |
 
+## Latency
+
+A search with hits takes roughly 5-20 s, and can reach 35 s. Finding the hits takes
+under 0.5 s; the rest is the model writing `llm_synthesis`. A call that takes 15 s is
+not hung. Use a client timeout of at least 60 s.
+
+To make it faster, ask for a shorter summary with `system_prompt`:
+
+    "system_prompt": "Answer in one short sentence. No lists."
+
+In testing this cut search from about 9-17 s to 3-8 s. The hits returned are the same;
+only the summary is shorter. Lowering `llm_top_n` does not speed it up.
+
 ## Building filters (do it client-side)
 
 There is **no** `/tags` or `/locations` route. Discover valid `metadata_filters` keys/values from `retrieval/list-metadata` (`/metadata/schema`, `/metadata/values?field=`). Parse the user's phrasing ("last hour", "in Midtown", "traffic cameras") into `time_filter` + `metadata_filters` + `tags` yourself, then pass the cleaned natural-language remainder as `query`.

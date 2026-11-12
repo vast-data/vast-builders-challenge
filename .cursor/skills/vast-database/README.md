@@ -13,14 +13,17 @@ Connect to the **data VIP** from `S3_ENDPOINT` in `/config/<team>.config`. Reads
 
 ## Prerequisites: Python + vastdb
 
-The VM only has `/usr/bin/python3` — no `python`, no pip, no ensurepip (`python3-venv` isn't
-installed), and no `vastdb` / `pyarrow` / `pyyaml`. Set this up yourself; don't ask the user
-and don't use `sudo` or `apt`.
+VM images vary — some ship `python3` with `vastdb` / `pyarrow` / `pyyaml` already installed
+system-wide, others have only bare `/usr/bin/python3` with no pip and no ensurepip
+(`python3-venv` missing). Check first rather than assume either way. Set this up yourself;
+don't ask the user and don't use `sudo` or `apt`.
 
-**1. Check first** — skip the rest if this succeeds:
+**1. Check first** — skip the rest if this succeeds (checks the venv interpreter if one
+already exists, otherwise the system `python3`):
 
 ```bash
-python3 -c "import vastdb, pyarrow, yaml"
+PY=~/vastdb-venv/bin/python; [ -x "$PY" ] || PY=python3
+"$PY" -c "import vastdb, pyarrow, yaml"
 ```
 
 **2. If it fails, create a user-space venv.** A plain `python3 -m venv` fails on this image

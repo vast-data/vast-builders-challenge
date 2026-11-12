@@ -114,14 +114,13 @@ def main() -> None:
             if not cols:
                 print("No columns to select", file=sys.stderr)
                 sys.exit(1)
-            reader = table.select(columns=cols)
-            rows = []
-            for batch in reader:
-                part = batch.to_pylist()
-                rows.extend(part)
-                if args.limit and len(rows) >= args.limit:
-                    rows = rows[: args.limit]
-                    break
+            # Let the SDK stop at the limit and read the reader to the end, so its
+            # worker threads finish inside the transaction (an abandoned reader raises
+            # MissingTransaction on stderr when it is garbage-collected later).
+            reader = table.select(columns=cols, limit_rows=args.limit or None)
+            rows = reader.read_all().to_pylist()
+            if args.limit:
+                rows = rows[: args.limit]
         except Exception as e:
             msg = str(e)
             if "403" in msg or "Forbidden" in msg:

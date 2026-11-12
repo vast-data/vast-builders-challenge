@@ -39,6 +39,12 @@ Compare `s3_inventory.segments_mp4` (clips written by the segmenter) with `pipel
 - Per video, `unique_segments < expected_segments` in `recent_videos` → that upload is partially indexed.
 - `duplicate_segment_rows > 0` → re-ingest/dedup slots (writer skips duplicate `source`).
 
+## Reasoner status (`live_endpoints`)
+
+`live_endpoints.reasoner.status` can read `unavailable` (detail: "No health endpoint")
+while the reasoner is working. Do not report it as an outage. To check the reasoner,
+run a search: if the response includes `llm_synthesis`, it is up.
+
 ## Agent instructions
 
 1. Ensure a JWT; pick `scope` (`mine` for the caller's uploads).

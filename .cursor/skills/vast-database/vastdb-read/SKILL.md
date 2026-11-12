@@ -44,8 +44,8 @@ Never search the repo's `team-configs/` or echo credentials.
 ### Query Engine VIP from K8s (optional)
 
 ```bash
-NS=$(grep '^USERNAME=' "${TEAM_CONFIGS[0]}" | cut -d= -f2-)   # team namespace, e.g. team-11
-export KUBECONFIG=/config/${NS}-k8s.yaml                     # e.g. /config/team-11-k8s.yaml
+NS=$(grep '^USERNAME=' "${TEAM_CONFIGS[0]}" | cut -d= -f2-)   # team namespace, e.g. <username>
+export KUBECONFIG=/config/${NS}-k8s.yaml                     # e.g. /config/<username>-k8s.yaml
 
 # 1) Prefer file if present:
 #    /config/backend-secret.yaml → stringData.config.yaml → vdb_endpoint
@@ -77,8 +77,8 @@ To force QE for a script: `VDB_ENDPOINT=<qe-url> "$PY" …/query.py` (see Prereq
 ## Prereqs
 
 See [vast-database/README.md](../README.md#prerequisites-python--vastdb) for Python setup
-(the VM has no `pip`/`python`/`vastdb` out of the box). Resolve `$PY` from there before
-running anything below.
+(VM images vary — check first rather than assume `pip`/`vastdb` are missing). Resolve `$PY`
+from there before running anything below.
 
 On the hackathon VM the data VIP is usually reachable directly — **no SSH tunnel required**.
 Only tunnel if connect fails from your network.
@@ -104,10 +104,6 @@ Prefer [query.py](query.py) (do not name a file `select.py` — it shadows stdli
 ```
 
 Never call `table.select()` with no columns on `vss-collection` — vector types can crash the SDK.
-
-`query.py` may print an `Exception ignored ... vastdb.errors.MissingTransaction` traceback
-on stderr after it returns rows. It still exits 0 with the correct output — treat it as
-noise, not a failure.
 
 ```python
 import vastdb
