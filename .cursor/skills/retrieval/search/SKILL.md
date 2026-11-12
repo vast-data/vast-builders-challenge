@@ -33,7 +33,7 @@ curl -s -X POST "$BACKEND/api/v1/search" \
 | `query` | — | required natural-language text |
 | `top_k` | 15 | rows returned (1–100) |
 | `llm_top_n` | 3 | top chunks sent to the LLM synthesizer; minimum **1** (422 below that) — synthesis cannot be turned off |
-| `min_similarity` | 0.1 | threshold; 0.3–0.8 recommended |
+| `min_similarity` | 0.1 | does not act as a cutoff on the returned `similarity_score` — do not rely on it to hide weak hits; see "Filtering by score" below |
 | `tags` | `[]` | tag filter |
 | `time_filter` | `all` | `5m`/`15m`/`1h`/`24h`/`7d`/`custom`; a relative window (`24h`, `7d`) returns nothing if the footage is older than the window |
 | `custom_start_date`/`custom_end_date` | — | ISO 8601, with `time_filter:"custom"` |
@@ -42,18 +42,30 @@ curl -s -X POST "$BACKEND/api/v1/search" \
 | `hybrid_text_weight` | backend default | caption vs visual blend (0–1) |
 | `system_prompt` | — | override the synthesis system prompt |
 
+## Filtering by score
+
+`min_similarity` does not filter the response — apply the cutoff yourself on each
+result's `similarity_score`. Start at about 0.35 and make it adjustable; good hits on
+this footage score roughly 0.35-0.55, and if there is a clear gap in the scores, cut at
+the gap instead. If nothing passes the cutoff, that is a valid answer, not an error:
+show a clear "no good matches" state. Optionally offer the top few results below the
+cutoff, labelled as weak matches, or let the user lower the cutoff — don't silently
+drop the cutoff to fill the page, and don't present weak hits as good ones.
+
 ## Latency
 
-A search with hits takes roughly 5-20 s, and can reach 35 s. Finding the hits takes
-under 0.5 s; the rest is the model writing `llm_synthesis`. A call that takes 15 s is
-not hung. Use a client timeout of at least 60 s.
+A search with hits usually takes about 5-10 s and can take about twice that, depending
+on the footage being searched and on load. Most of the time is the model writing
+`llm_synthesis`. A call that takes 15-20 s is not hung; use a client timeout of at
+least 60 s.
 
-To make it faster, ask for a shorter summary with `system_prompt`:
+Asking for a shorter summary with `system_prompt` usually makes it faster, but not on
+every call:
 
     "system_prompt": "Answer in one short sentence. No lists."
 
-In testing this cut search from about 9-17 s to 3-8 s. The hits returned are the same;
-only the summary is shorter. Lowering `llm_top_n` does not speed it up.
+The hits returned are the same; only the summary is shorter. Lowering `llm_top_n` does
+not speed it up.
 
 ## Building filters (do it client-side)
 
@@ -77,5 +89,5 @@ Play a hit with `retrieval/videos` (`/videos/stream?source=…`). For a grounded
 
 1. Ensure a JWT.
 2. Split the user's ask into `query` + `time_filter` + `metadata_filters` + `tags`; verify filter fields via `list-metadata`.
-3. Raise `min_similarity` (0.3–0.5) to cut noise; use `chunk_results` for "which video", `results` for "which exact moment".
+3. Filter weak hits yourself on `similarity_score` (see "Filtering by score"), not via `min_similarity`; use `chunk_results` for "which video", `results` for "which exact moment".
 4. Cite `llm_synthesis.response` when present; otherwise summarize `chunk_results`.

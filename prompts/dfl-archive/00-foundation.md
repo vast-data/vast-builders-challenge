@@ -21,11 +21,12 @@ What already exists (do not rebuild it):
 Conventions
 - Python: python3 -m venv .venv. If it fails with "ensurepip is not available", use python3 -m venv --without-pip .venv, then get-pip.py.
 - Each match is stored as 30 s chunks, each its own original_video. Explore returns 100 chunks per call, so page with offset and filter by file name.
+- Per-segment captions, sources and times are in each chunk's `chunks[].timeline[]` (retrieval-videos explore), one entry per 5 s segment. A chunk's top-level `reasoning_content` is only the first segment's caption — read `timeline[]` for every segment.
 - match_id = the file name slug <season>_<competition>_<home>-vs-<away> (not the leading timestamp, which is the upload time). Match time = chunk_index x 30 + offset. File names carry no match date, so leave match_date as an editable placeholder.
 - Native search filters are only camera_id, capture_type, location and object_classes, one value each. Every match shares camera_id bundesliga-01, so it does not identify one match — identify a match by file name (season, competition and teams). Filter season, competition and team in your own code from the file name.
 - retrieval-search takes 5-20 s per query (it always adds an LLM summary; can reach 35 s; about 3-8 s with a short system_prompt): show a spinner.
 - Clips: play the 5 s segment clips from search results through a small server-side proxy in your app. Never show playback_url in the UI; it carries a token. Do not cut clips with ffmpeg.
-- Run the app on the VM on its own port.
+- Deploy the app with deployment-deploy-app-no-registry (it runs on the cluster at `/app`); a quick local run on the VM is fine for testing before you deploy.
 
 Licensing rules (the demo seeds these)
 - Use types: social, broadcast, documentary, advertising.

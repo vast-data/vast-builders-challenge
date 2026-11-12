@@ -44,9 +44,8 @@ curl -s -X POST "$BACKEND/api/v1/agent/search-and-answer" \
 
 `evidence` includes `chunks[]` (`original_video`, `similarity_score`, `best_match_start_sec/end_sec`, `preview_source`), timings, and `llm_synthesis`.
 
-`search-and-answer` has the same latency profile as `/search` (measured ~15-25 s by
-default, ~4-10 s with the `system_prompt` tip) — see [retrieval/search's Latency
-section](../search/SKILL.md#latency).
+`search-and-answer` has the same latency profile as `/search` and can take about twice
+as long — see [retrieval/search's Latency section](../search/SKILL.md#latency).
 
 ## Agent tools — `GET/POST /api/v1/tools/*`
 

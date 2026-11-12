@@ -61,7 +61,7 @@ def arrow_schema_from_rows(rows: list[dict]):
         elif isinstance(sample, int):
             fields.append((k, pa.int64()))
         elif isinstance(sample, float):
-            fields.append((k, pa.float32()))
+            fields.append((k, pa.float64()))
         else:
             fields.append((k, pa.utf8()))
     return pa.schema(fields)
@@ -141,6 +141,21 @@ def main() -> None:
             table = schema.table(args.table, fail_if_missing=False)
             if table is None:
                 table = schema.create_table(args.table, columns=schema_pa, fail_if_exists=False)
+            else:
+                # The table already exists: use its own column types, so the rows match it
+                # (for example double or null-able columns) instead of types guessed from the JSON.
+                existing = {f.name: f for f in table.columns()}
+                unknown = [k for k in schema_pa.names if k not in existing]
+                if unknown:
+                    print(
+                        f"Columns not in {args.schema}.{args.table}: {unknown}. "
+                        f"Table columns: {list(existing)}",
+                        file=sys.stderr,
+                    )
+                    sys.exit(1)
+                table_arrow = pa.Table.from_pylist(
+                    rows, schema=pa.schema([existing[k] for k in schema_pa.names])
+                )
             table.insert(table_arrow)
         except Exception as e:
             msg = str(e)

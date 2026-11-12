@@ -7,7 +7,7 @@ Run a track's `00` context prompt first. It builds nothing; it sets the rules an
 | Track | Prompt | What it gives you |
 |---|---|---|
 | [`dfl-archive/`](dfl-archive/) | `00-foundation` | Context only: match IDs, filters, licensing rules |
-| | `01-across-the-eras` | The same moment searched across five matches, grouped by season |
+| | `01-across-the-eras` | The same moment searched across the indexed matches, grouped by season |
 | | `02-highlight-set-builder` | Accept and reject clips for a topic, then save the set with a summary card |
 | | `03-rights-aware-licensing-storefront` | A storefront that shows rights, partner and price per clip, and meters licenses |
 | [`f1-vss/`](f1-vss/) | `00-shared-context` | Context only: race scoping, clip proxy, conventions |

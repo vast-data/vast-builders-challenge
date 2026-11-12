@@ -39,6 +39,11 @@ After deploy, tell the user to open `$APP_URL`
 (`https://team-<N>-app.thecosmoslabs.com/app/`). It goes through Cloudflare
 Access, so the browser may ask them to sign in first.
 
+Open it **with the trailing slash**, and use relative URLs in the page for the app's
+own API calls and assets — without the slash, the page resolves relative URLs one
+level up (`/app/api/...` becomes `/api/...`) and its own calls and assets break.
+Optionally, have the app redirect a request for the bare path to the slash form.
+
 Do not send them to `$INGRESS_URL` (internal VSS API) or to `http://$APP_HOST/app`
 — that host is internal to the lab network and won't load from an attendee's laptop;
 it's only for the in-cluster `curl` check in Verify below.
@@ -138,14 +143,25 @@ kubectl -n "$NS" create secret generic "${APP_NAME}-vss-creds" \
 ```
 
 **No VastDB access from the deployed app.** This Secret only holds `VSS_URL` /
-`VSS_USERNAME` / `VSS_PASSWORD`, and `python:3.12-slim` has no `vastdb` package — a
-deployed app can call the VSS API but cannot read or write VastDB tables as deployed.
-If the app needs table data: do the VastDB reads/writes from the VM with the
-`vast-database` skills, write the rows it needs to a small JSON file in the app
-directory, and ship that file in the ConfigMap (step 2) — label it in the app as a
-snapshot with its time. Re-create the ConfigMap and restart the Deployment to refresh
-it (see Update loop below). Keep the snapshot small; the ConfigMap limit is still
-~1 MiB total.
+`VSS_USERNAME` / `VSS_PASSWORD`, and `python:3.12-slim` has no `vastdb` package and no
+`ffmpeg` — a deployed app can call the VSS API but cannot read or write VastDB tables,
+or run binaries that aren't in the base image, as deployed. Three cases:
+
+- **Reading table data:** do the VastDB read from the VM with the `vast-database`
+  skills, write the rows it needs to a small JSON file in the app directory, and ship
+  that file in the ConfigMap (step 2) — label it in the app as a snapshot with its time.
+- **Saving user actions** (an accept/reject set, a licence, a usage event): keep the
+  state in the app's memory and add an export endpoint; a VM-side script reads that
+  export and writes it to VastDB with the `vast-database` skills, then re-creates the
+  ConfigMap with the refreshed snapshot.
+- **Features needing a binary** (`ffmpeg`, etc.): run it on the VM, not in the pod, and
+  ship its results as a snapshot the same way.
+
+Either way, re-create the ConfigMap and restart the Deployment to refresh the snapshot
+(see Update loop below). Keep the snapshot small; the ConfigMap limit is still ~1 MiB
+total. Two cautions: in-memory app state is lost on restart and shared by every viewer
+of the URL, so export it before refreshing the snapshot; and `--from-file=<dir>` skips
+subdirectories, so keep app files flat.
 
 ### 4. Deployment + Service + Ingress
 
@@ -300,6 +316,10 @@ the Ingress / pod — do not fall back to a local server.
 | Creds / VSS URL | Recreate Secret → rollout restart |
 | Manifest (port, probe, image) | `kubectl apply` Deployment/Service/Ingress again |
 
+After `rollout restart`, wait a few seconds or retry a check before trusting it — the
+old pod can still answer briefly after `rollout status` returns, so a check made right
+after a restart can hit the old pod and show stale data.
+
 ## Constraints & pitfalls
 
 | Issue | What to do |
@@ -315,6 +335,7 @@ the Ingress / pod — do not fall back to a local server.
 | 503 right after deploy | Wait and retry — Ingress hasn't picked up the new pod yet. |
 | Wrong namespace | Only **this** team (`$USERNAME` / confirmed `NS`). |
 | App needs VastDB table data | Pod has no VastDB credentials or package. Read the table from the VM and ship a JSON snapshot in the ConfigMap. |
+| Page loads but its API calls 404 | Opened without the trailing slash, or the page uses absolute URLs. Use `/app/` and relative URLs. |
 
 ## Agent instructions
 

@@ -51,7 +51,9 @@ running anything below.
 
 ## Insert (script)
 
-[insert.py](insert.py) creates `hackathon.demo_events` if needed and inserts rows:
+[insert.py](insert.py) creates `hackathon.demo_events` if needed and inserts rows. Into
+an existing table it uses that table's own column types (so a `double` or nullable
+column still matches); for a new table a JSON float is created as `double`.
 
 ```bash
 "$PY" .cursor/skills/vast-database/vastdb-write/insert.py --example
@@ -77,7 +79,7 @@ session = vastdb.connect(
 columns = pa.schema([
     ("id", pa.int64()),
     ("label", pa.utf8()),
-    ("score", pa.float32()),
+    ("score", pa.float64()),
     ("note", pa.utf8()),
 ])
 
@@ -101,6 +103,28 @@ with session.transaction() as tx:
         schema=columns,
     )
     table.insert(arrow)
+```
+
+**Create only if missing.** The `fail_if_missing=False` / `fail_if_exists=False` pair
+above is the pattern to use whenever a prompt says "create table": check first, create
+only if it doesn't exist yet, and insert. That way re-running a prompt doesn't fail or
+wipe an existing table. Never drop a table to re-create it.
+
+## Delete rows
+
+Some prompts delete a run's rows before re-running it. For the team's own tables only
+(never `vss-collection` / `vss-events-collection`):
+
+```python
+with session.transaction() as tx:
+    t = tx.bucket(VASTDB_BUCKET).schema("hackathon").table("demo_events")
+    rec = t.select(
+        columns=["id"],
+        predicate=(t["label"] == "near_miss"),
+        internal_row_id=True,
+    ).read_all()
+    if rec.num_rows:
+        t.delete(rec)
 ```
 
 ## Create table under the existing VSS schema

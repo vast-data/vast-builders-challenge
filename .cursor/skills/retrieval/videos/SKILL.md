@@ -23,6 +23,12 @@ curl -s "$BACKEND/api/v1/videos/explore?scope=all&limit=48&offset=0" -H "Authori
 `limit` maxes out at 100 — above that the request 422s. Take `source` / `original_video` for
 the calls below from what `explore` (or a search) returns, not from a guessed key.
 
+Each chunk's top-level `reasoning_content` is only the **first 5 s segment's** caption.
+Per-segment captions, sources and start times are in `chunks[].timeline[]`, one entry
+per 5 s segment, each with its own `reasoning_content`, `source` and start time — read
+`timeline[]` to get every segment's caption; reading only the chunk-level field
+undercounts about six-fold (30 s chunk / 5 s segments).
+
 ## Play — `GET /api/v1/videos/stream` / `playback-url`
 
 JWT goes in `?token=` (not header) so `<video>` works.
@@ -33,6 +39,10 @@ JWT goes in `?token=` (not header) so `<video>` works.
 # Or a presigned S3 GET URL (needs bucket CORS for direct browser playback):
 curl -s "$BACKEND/api/v1/videos/playback-url?source=s3://$S3_SEGMENTS_BUCKET/<key>&token=$TOKEN&expires_in=3600"
 ```
+
+Passing a chunk's `original_video` as `source` instead of a segment's returns the whole
+~30 s chunk file (about 15-20 MB, under a second) — this is how to fetch a full chunk
+rather than one 5 s segment.
 
 ## Inspect a segment
 

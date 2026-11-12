@@ -22,10 +22,11 @@ Conventions
 - Python: python3 -m venv .venv. If it fails with "ensurepip is not available", use python3 -m venv --without-pip .venv, then get-pip.py.
 - F1 footage: filter search with metadata_filters {"camera_id": "f1-01"}. That value covers both races, so keep only the hits for the race you want by file name: original_video / source contains f1-academy_race or formula-e_race.
 - To list a race's chunks, call explore with location=england (returns the F1 chunks only, 100 per call, so two pages with offset), then filter by file name the same way.
+- Per-segment captions, sources and times are in each chunk's `chunks[].timeline[]` (retrieval-videos explore), one entry per 5 s segment. A chunk's top-level `reasoning_content` is only the first segment's caption — read `timeline[]` for every segment.
 - A wrong camera_id returns zero results with no error, so check values with /metadata/values when a filtered search comes back empty.
 - race_id = the file name between the YYYYMMDD_HHMMSS_ prefix and _chunk_NNNN. Race time = chunk_index x 30 + offset (nominal).
 - Clips: play the 5 s segment clips from search results through a small server-side proxy in your app. Never show playback_url in the UI; it carries a token.
-- Run the app on the VM on its own port.
+- Deploy the app with deployment-deploy-app-no-registry (it runs on the cluster at `/app`); a quick local run on the VM is fine for testing before you deploy.
 
 UI rules for every demo
 - Layout: a ranked list on the left and one player panel on the right. Selecting a row plays it there. Filter chips with hit counts sit above the list.
