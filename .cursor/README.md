@@ -7,7 +7,7 @@ Agent skills for working with the VSS2 video search stack. Each skill lives in i
 ```
 .cursor/skills/
 ├── deployment/             # Deploy retrieval K8s apps + hackathon mini-apps
-├── ingest/                 # Upload new video or re-ingest indexed archive
+├── ingest/                 # Upload (not recommended)
 ├── retrieval/              # Query and explore indexed video
 └── vast-database/          # Raw VastDB SDK read/write (not the JWT API)
 ```
@@ -22,14 +22,13 @@ Skills must not search the repo's `team-configs/`.
 
 ## Ingest
 
-**Re-ingest** for content already in the team archive (hackathon default). **Upload**
-when adding a new local video via the backend (`POST /api/v1/videos/upload`).
+**Build on the footage that is already indexed.** The backend has no re-ingest route.
+Upload works but is not recommended (shared GPUs); the upload skill keeps it to one short
+clip at a time.
 
 | Skill | Summary |
 |-------|---------|
-| [upload-video](skills/ingest/upload-video/SKILL.md) | Multipart upload of a new video via backend upload API |
-| [reingest-videos](skills/ingest/reingest-videos/SKILL.md) | Re-ingest a selected indexed video/stream via dashboard API |
-| [reingest-chunk](skills/ingest/reingest-chunk/SKILL.md) | Re-ingest one specific Explore card / chunk |
+| [upload-video](skills/ingest/upload-video/SKILL.md) | Not recommended. Cut and upload one short clip (30 s or less), one at a time |
 
 → [ingest/README.md](skills/ingest/README.md)
 
@@ -57,6 +56,7 @@ Raw SDK access to the team’s VastDB bucket (bypasses the JWT API).
 |-------|---------|
 | [vastdb-read](skills/vast-database/vastdb-read/SKILL.md) | Raw VastDB catalog + select (data VIP / optional QE) |
 | [vastdb-write](skills/vast-database/vastdb-write/SKILL.md) | Create schemas/tables + insert (data VIP only) |
+| [football-eras](skills/vast-database/football-eras/SKILL.md) | One-time setup: label football clips with their era for faster searches |
 
 → [vast-database/README.md](skills/vast-database/README.md)
 
@@ -74,10 +74,6 @@ Retrieval-side Kubernetes apps (`deployments/vss-k8s-application/` in the bluepr
 → [deployment/README.md](skills/deployment/README.md)
 
 ## Typical flows
-
-**Upload a new file** → `login` → `upload-video` → `dashboard` / `videos`
-
-**Re-ingest** → `login` → `reingest-videos` (or `reingest-chunk`) → `dashboard`
 
 **Search** → `login` → `list-metadata` (optional) → `search` or `agent-qa`
 

@@ -31,7 +31,8 @@ undercounts about six-fold (30 s chunk / 5 s segments).
 
 ## Play — `GET /api/v1/videos/stream` / `playback-url`
 
-JWT goes in `?token=` (not header) so `<video>` works.
+JWT goes in `?token=` (not a header). Call these from server code only; for an app, see
+"Serving clips from an app" below.
 
 ```bash
 # Range-capable proxy stream (seekable):
@@ -41,8 +42,17 @@ curl -s "$BACKEND/api/v1/videos/playback-url?source=s3://$S3_SEGMENTS_BUCKET/<ke
 ```
 
 Passing a chunk's `original_video` as `source` instead of a segment's returns the whole
-~30 s chunk file (about 15-20 MB, under a second) — this is how to fetch a full chunk
+~30 s chunk file (roughly 8-16 MB, depending on the footage) — this is how to fetch a full chunk
 rather than one 5 s segment.
+
+## Serving clips from an app
+
+`/videos/stream` answers with `Content-Type: binary/octet-stream`, and its URL carries
+the JWT, so do not point a `<video>` tag at it. Give the app a small server-side route
+(for example `clip?source=...`) that calls `/videos/stream` with the token, forwards
+the browser's `Range` header, returns the upstream status (200 or 206) with
+`Content-Range`, `Accept-Ranges` and `Content-Length`, and sets
+`Content-Type: video/mp4`. The `<video>` tag points at that route.
 
 ## Inspect a segment
 
@@ -51,8 +61,8 @@ curl -s "$BACKEND/api/v1/videos/metadata?source=s3://$S3_SEGMENTS_BUCKET/<key>" 
 curl -s "$BACKEND/api/v1/videos/detections?source=s3://$S3_SEGMENTS_BUCKET/<key>" -H "Authorization: Bearer $TOKEN"  # YOLO bbox sidecar JSON
 ```
 
-`source` is team-prefixed, not a literal `s3://vss-chunks-segments/...` key — copying that
-example literally 404s. Take the real `source` from an `explore` or `search` result.
+`source` is a team-prefixed S3 URI. Take the real `source` from an `explore` or `search`
+result rather than building one.
 
 `detections` 404 = no YOLO sidecar for that segment (detector disabled or no detections).
 
@@ -64,7 +74,7 @@ LLM summary over **all** segments of one parent video (no VastDB write). This is
 curl -s -X POST "$BACKEND/api/v1/videos/synthesize" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{
-    "original_video": "s3://$S3_CHUNKS_BUCKET/user/20260101_120000_ab12cd34.mp4",
+    "original_video": "<original_video from explore or search>",
     "question": "Summarize what happens in this video",
     "max_segments": 40
   }'
@@ -74,7 +84,7 @@ Optional `system_prompt` overrides the default (chronological Overview + Timelin
 
 ## Related
 
-Same functions are exposed as agent tools under `/api/v1/tools/*` (`segments`, `segment`, `explore`, `synthesize`, `detections`) — see `retrieval/agent-qa`.
+Most of these are also exposed as agent tools under `/api/v1/tools/*` (`segments`, `segment`, `synthesize`, `detections`); `tools/explore` returns 500 on this stack — see `retrieval/agent-qa`.
 
 ## Agent instructions
 

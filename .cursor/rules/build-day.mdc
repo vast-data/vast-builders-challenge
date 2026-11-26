@@ -10,16 +10,20 @@ stack. The stack is already deployed. The team builds on top of it; they do not 
 
 ## What the team can do
 
-- Ingest clips or a stream, search the index, and read metadata, using the skills in
-  `.cursor/skills/`.
+- Search the index, play clips, and read metadata, using the skills in
+  `.cursor/skills/`. Re-ingest is not available on this stack. Uploading
+  new video is not recommended (shared GPUs): only when the team asks, and then a clip of
+  30 s or less with the `ingest-upload-video` skill.
 - Build an agent on top of those results. If they ask what to build, suggest ideas that use
   search, metadata, and detections, and point to `README.md` and `ARCHITECTURE_REFERENCE.md`.
 
 ## Rules
 
 - Use a matching skill in `.cursor/skills/` before writing raw REST calls.
-- The environment is pre-configured. Credentials and endpoints are already in environment
-  variables. Never ask the team for them, hardcode them, or edit `/etc/hosts`.
+- The environment is pre-configured. Credentials and endpoints are in `/config/<team>.config`,
+  and the skills read them from there. Most are also set as environment variables, but
+  `USERNAME` is not set in every shell, so read it from the config file. Never ask the team
+  for them, hardcode them, or edit `/etc/hosts`.
 - To see which variables are set, list names only with `env | cut -d= -f1 | sort`. Never run
   bare `env` or `printenv`, which print secret values.
 - `config.example` documents what each variable is for. Read it when a name is unclear.
@@ -31,7 +35,7 @@ stack. The stack is already deployed. The team builds on top of it; they do not 
 
 ## When stuck
 
-Use the `ask-cosmos` skill. It runs the health check and prepares a question with the
+Use the `ask-help` skill. It runs the health check and prepares a question with the
 details and team name ($USERNAME, $PIPELINE). It does not post anywhere; the team decides where to share it.
 
 ## When finished

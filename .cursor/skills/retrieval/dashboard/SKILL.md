@@ -29,7 +29,7 @@ The response is one object with **all** sections (no per-section `scope` param):
 | `metadata{}` | value distributions per upload field (`location`, `camera_id`, `capture_type`…) |
 | `uploads_by_day[]` | `date`, `segment_rows` |
 | `recent_videos[]` | per parent: `original_video`, `filename`, `segment_rows`, `indexed_clips`, `unique_segments`, `expected_segments`, `duplicate_rows`, `ingest_kind`, upload metadata |
-| `s3_inventory` | `chunks_mp4`, `segments_mp4`, `segmenter_output_mp4` per bucket (`vss-chunks`, `vss-chunks-segments`) |
+| `s3_inventory` | `chunks_mp4`, `segments_mp4`, `segmenter_output_mp4` per bucket (the team's chunks and segments buckets) |
 | `pipeline_alignment` | `segments_s3_mp4` vs `indexed_clips`/`segment_rows`, `pending_index`, `healthy` flags |
 
 ## Diagnosing "segments didn't index"

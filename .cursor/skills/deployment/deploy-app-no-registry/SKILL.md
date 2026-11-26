@@ -30,7 +30,7 @@ This is **not** a custom-built app image — code is mounted at runtime.
 | **Must run on K8s** | Deployment in the team's namespace. Do not ship a local Flask/Node server, `python -m http.server`, or “open localhost” as the app. |
 | **Must use Ingress** | Path `/app` on the team Ingress host. |
 | **One host per team** | Ingress host is the host in `$INGRESS_URL` (the team's existing VSS host). The app shares it; it does not get its own hostname. |
-| **Path is `/app`** | Always. Do not invent a new hostname or use `/` (that is the VSS UI). |
+| **Path is `/app` or `/app/<name>`** | The team's first app uses `/app`. Any further app in the same namespace needs its own `APP_NAME` and its own path `/app/<name>`; two Ingresses cannot both own `/app`. Do not invent a new hostname or use `/` (that is the VSS UI). |
 | **External URL for humans** | `$APP_URL` = `https://team-<N>-app.thecosmoslabs.com/app/`. Not `$INGRESS_URL`, not `http://$APP_HOST/app` (internal to the lab network, won't load from an attendee's laptop). |
 
 ## How to open the app
@@ -42,7 +42,9 @@ Access, so the browser may ask them to sign in first.
 Open it **with the trailing slash**, and use relative URLs in the page for the app's
 own API calls and assets — without the slash, the page resolves relative URLs one
 level up (`/app/api/...` becomes `/api/...`) and its own calls and assets break.
-Optionally, have the app redirect a request for the bare path to the slash form.
+Make the page fix this itself: the Ingress rewrites both `/app` and `/app/` to `/`, so
+the server cannot tell them apart. Put this first in the page's `<head>`:
+`<script>var p=location.pathname;if(!p.endsWith('/')&&!p.split('/').pop().includes('.'))location.replace(p+'/'+location.search+location.hash)</script>`
 
 Do not send them to `$INGRESS_URL` (internal VSS API) or to `http://$APP_HOST/app`
 — that host is internal to the lab network and won't load from an attendee's laptop;
@@ -63,7 +65,7 @@ Stay in **your** team namespace only.
 mapfile -t TEAM_CONFIGS < <(find /config -maxdepth 1 -type f -name '*.config' | sort)
 (( ${#TEAM_CONFIGS[@]} == 1 )) || { echo "expected exactly one /config/*.config"; exit 1; }
 TEAM_CONFIG="${TEAM_CONFIGS[0]}"
-# Do not `source` on zsh (USERNAME is reserved). Parse keys:
+# Run this block with bash, not zsh. Parse keys (do not `source` the file):
 USERNAME=$(grep '^USERNAME=' "$TEAM_CONFIG" | cut -d= -f2-)
 INGRESS_URL=$(grep '^INGRESS_URL=' "$TEAM_CONFIG" | cut -d= -f2-)
 PASSWORD=$(grep '^PASSWORD=' "$TEAM_CONFIG" | cut -d= -f2-)
@@ -73,7 +75,7 @@ ACCESS_KEY=$(grep '^ACCESS_KEY=' "$TEAM_CONFIG" | cut -d= -f2-)
 SECRET_KEY=$(grep '^SECRET_KEY=' "$TEAM_CONFIG" | cut -d= -f2-)
 VASTDB_BUCKET=$(grep '^VASTDB_BUCKET=' "$TEAM_CONFIG" | cut -d= -f2-)
 
-# Namespace = this team only (e.g. team-17). Confirm with the user if unclear.
+# Namespace = USERNAME from the team config, used exactly as written. Do not shorten it or build it from the team number.
 NS="$USERNAME"
 export KUBECONFIG=/config/${NS}-k8s.yaml   # e.g. /config/<username>-k8s.yaml
 # team account is namespace-scoped; cluster-info returns Forbidden
@@ -85,7 +87,10 @@ APP_HOST=$(echo "$INGRESS_URL" | sed -E 's#^https?://##; s#/.*$##')
 
 # Public URL people open (through Cloudflare). Team number = trailing digits of USERNAME.
 TEAM_N="${USERNAME##*[!0-9]}"
-APP_URL="https://team-${TEAM_N}-app.thecosmoslabs.com/app/"
+# Check which paths are taken: kubectl -n "$NS" get ingress
+APP_NAME=hackathon-app        # k8s resource prefix; lowercase DNS-1123. A further app needs its own name.
+APP_PATH=/app                 # the team's first app. A further app: APP_PATH=/app/$APP_NAME
+APP_URL="https://team-${TEAM_N}-app.thecosmoslabs.com${APP_PATH}/"
 ```
 
 `$INGRESS_URL` from `/config/<team>.config` is only for the app's **backend** calls (`VSS_URL`).
@@ -98,9 +103,9 @@ The app calls the existing VSS backend at `$INGRESS_URL` (see `retrieval/login`,
 ```
 - [ ] 1. Write app files (keep under ~1 MiB total); routes at / (Ingress strips /app)
 - [ ] 2. Create ConfigMap from app code
-- [ ] 3. Create Secret from team VSS + VastDB creds
-- [ ] 4. Apply Deployment + Service + Ingress (host=$APP_HOST, path=/app)
-- [ ] 5. Verify pod Running + curl http://$APP_HOST/app (in-cluster check; public URL is $APP_URL)
+- [ ] 3. Create Secret from team VSS creds (plus VastDB creds if the app uses tables)
+- [ ] 4. Apply Deployment + Service + Ingress (host=$APP_HOST, path=$APP_PATH)
+- [ ] 5. Verify pod Running + curl http://$APP_HOST$APP_PATH/ (in-cluster check; public URL is $APP_URL)
 ```
 
 ### 1. App layout
@@ -131,7 +136,7 @@ may not be more than 262144 bytes") well before the ~1 MiB ConfigMap limit itsel
 
 ```bash
 APP_DIR=tools/my-app          # adjust
-APP_NAME=hackathon-app        # k8s resource prefix; lowercase DNS-1123
+# APP_NAME and APP_PATH were set in the setup block above
 
 kubectl -n "$NS" create configmap "${APP_NAME}-code" \
   --from-file="$APP_DIR" \
@@ -139,7 +144,8 @@ kubectl -n "$NS" create configmap "${APP_NAME}-code" \
 ```
 
 After code changes: re-run the same `create … | apply`, then restart the Deployment
-(ConfigMap updates are **not** picked up by a running pod automatically). Re-applying
+(ConfigMap updates are **not** picked up by a running pod automatically). On a first
+deploy no restart is needed. Re-applying
 with `--server-side` can report a field-manager conflict on a second apply; add
 `--force-conflicts` only if that happens.
 
@@ -157,6 +163,10 @@ kubectl -n "$NS" create secret generic "${APP_NAME}-creds" \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
+Include the four `VASTDB_*` lines only when the app reads or writes tables; an app that
+never touches VastDB should not carry the keys. Add them later by re-running this step
+and restarting the Deployment.
+
 **The app can use VastDB directly.** List `vastdb` in the app's `requirements.txt` (the
 skill already runs `pip install -r requirements.txt` at container start; `pyarrow`
 comes with it) and connect with the `VASTDB_*` env vars this Secret now carries:
@@ -171,9 +181,9 @@ with session.transaction() as tx:
 ```
 
 See the `vast-database` skills for schema/table creation, inserts, reads and deletes —
-the same patterns work from inside the pod. Installing `vastdb` adds about 20 s to pod
-startup (closer to 30 s total vs. 6-13 s without it), so the first check after a deploy
-or restart should retry — the Verify step below already does.
+the same patterns work from inside the pod. Installing `vastdb` adds noticeably to pod
+startup, so the first check after a deploy or restart should retry — the Verify step
+below already does.
 
 Three cases for a deployed app and VastDB:
 
@@ -196,7 +206,7 @@ Two safety rules:
 
 ### 4. Deployment + Service + Ingress
 
-Ingress **must** reuse the team's host and path `/app` (nginx rewrite strips the prefix
+Ingress **must** reuse the team's host and path `$APP_PATH` (nginx rewrite strips the prefix
 so the container still sees `/`):
 
 ```bash
@@ -283,7 +293,7 @@ spec:
   - host: ${APP_HOST}
     http:
       paths:
-      - path: /app(/|$)(.*)
+      - path: ${APP_PATH}(/|\$)(.*)
         pathType: ImplementationSpecific
         backend:
           service:
@@ -311,12 +321,12 @@ kubectl -n "$NS" get pods,svc,ingress -l app="$APP_NAME"
 kubectl -n "$NS" logs -l app="$APP_NAME" --tail=100
 
 for i in $(seq 1 10); do
-  code=$(curl -sS -o /dev/null -w "%{http_code}" "http://${APP_HOST}/app")
+  code=$(curl -sS -o /dev/null -w "%{http_code}" "http://${APP_HOST}${APP_PATH}/")
   [ "$code" = 200 ] && break
   sleep 3
 done
 echo "$code"
-curl -sS "http://${APP_HOST}/app/health"
+curl -sS "http://${APP_HOST}${APP_PATH}/health"
 ```
 
 A 503 in the first few seconds after rollout is normal while the Ingress picks up the
@@ -335,9 +345,12 @@ the Ingress / pod — do not fall back to a local server.
 | Creds / VSS URL | Recreate Secret → rollout restart |
 | Manifest (port, probe, image) | `kubectl apply` Deployment/Service/Ingress again |
 
-After `rollout restart`, wait a few seconds or retry a check before trusting it — the
-old pod can still answer briefly after `rollout status` returns, so a check made right
-after a restart can hit the old pod and show stale data.
+After `rollout restart`, the old pod can still answer briefly after `rollout status` returns,
+so a check made right away can hit it and show stale data. Wait until only the new pod is left:
+
+```bash
+until [ "$(kubectl -n "$NS" get pods -l app="$APP_NAME" --no-headers | wc -l)" = 1 ]; do sleep 2; done
+```
 
 ## Constraints & pitfalls
 
@@ -345,14 +358,14 @@ after a restart can hit the old pod and show stale data.
 |-------|------------|
 | Tempted to run locally | Refuse — deploy to K8s + Ingress `/app` only. |
 | New hostname for the app | Wrong — Ingress host is the host in `$INGRESS_URL` (the team's existing VSS host), not a new one. |
-| Ingress path `/` or random path | Wrong — path must be `/app`. |
+| Ingress path `/` or a path outside `/app` | Wrong. Use `/app`, or `/app/<name>` for a second app. |
 | `ImagePullBackOff` | Cluster must pull Docker Hub; ask organizers if blocked. |
 | ConfigMap too large | Trim assets; stay under ~1 MiB total (see also the `apply` row below). |
 | Pod crashes | `kubectl logs`; missing dep or not binding `0.0.0.0`. |
 | 401 from VSS | Secret vs `/config/<team>.config`; see `retrieval/login`. |
 | `/app` 404 / wrong backend | Check rewrite annotation + path `/app(/|$)(.*)` on this team's host. |
 | 503 right after deploy | Wait and retry — Ingress hasn't picked up the new pod yet. |
-| Wrong namespace | Only **this** team (`$USERNAME` / confirmed `NS`). |
+| Wrong namespace | Use only this team's namespace: `NS` is `USERNAME` from the config, verbatim. |
 | App needs VastDB | Add `vastdb` to `requirements.txt` and use the `VASTDB_*` env vars from the Secret; the pod reads and writes the team's tables directly. |
 | `apply` fails well under ~1 MiB | Client-side `apply` 403s around ~250 KB (annotation size limit) — use `kubectl apply --server-side` (step 2) to get the real ~1 MiB limit. |
 | Page loads but its API calls 404 | Opened without the trailing slash, or the page uses absolute URLs. Use `/app/` and relative URLs. |
@@ -361,7 +374,7 @@ after a restart can hit the old pod and show stale data.
 
 1. Deliverable is **on-cluster** via Ingress — never a local-only app.
 2. Resolve `NS` from `$USERNAME`. Set `$APP_HOST` to the host in `$INGRESS_URL` (the team's existing VSS host) — do not invent a new hostname. Use `$INGRESS_URL` itself only as `VSS_URL` (internal API).
-3. Ingress host = `$APP_HOST`, path = `/app` (with nginx rewrite). No other host/path.
+3. Ingress host = `$APP_HOST`, path = `$APP_PATH` (`/app`, or `/app/<name>` for a second app), with the nginx rewrite. No other host.
 4. Generate a small app (`main.py` + optional `requirements.txt`) that authenticates to VSS and implements the use case; keep internal routes at `/`.
 5. Apply ConfigMap → Secret → Deployment/Service/Ingress; prove the pod/Ingress is healthy.
 6. On code edits: update ConfigMap + `rollout restart`. Do not suggest `docker build`/`push`.

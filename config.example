@@ -27,7 +27,7 @@ VASTDB_BUCKET=team-x-vss-db
 # VDB_COLLECTION is the search index; VDB_PROMPTS_COLLECTION holds the ingestion prompts.
 VDB_SCHEMA=vss-schema
 VDB_COLLECTION=vss-collection
-VDB_PROMPTS_COLLECTION=vss-prompts-events
+VDB_PROMPTS_COLLECTION=vss-events-collection
 
 # ---- DataEngine / UI ----
 # PIPELINE is the name you see for your VSS instance in the UI. No skill reads it.

@@ -1,6 +1,6 @@
 # Retrieval (vss2)
 
-Query the indexed VSS archive through the **backend API** (`source-code/retrieval/video-backend`). Every route below `/api/v1` (except `/metadata/ingest-config`) needs a JWT — start with `login`.
+Query the indexed VSS archive through the **backend API**. Every route below `/api/v1` (except `/metadata/ingest-config`) needs a JWT — start with `login`.
 
 Base URL: `http://<backend-host>` → API prefix `/api/v1`.
 Resolve `INGRESS_URL`, `USERNAME`, and `PASSWORD` from the single
@@ -36,4 +36,4 @@ No `/reports`, `/alerts`, `/analytics`, `/videos/ask`, `/tags`, `/locations`, or
 
 ## vss2 backing store
 
-VastDB `vss-db` / `vss-schema` / `vss-collection` (+ `vss-prompts-events`); Cosmos-Embed1 256-dim hybrid vectors (`vectors` text + `vectors_visual`). All row access is ACL-filtered by the caller's user.
+VastDB `vss-db` / `vss-schema` / `vss-collection` (+ `vss-events-collection`); Cosmos-Embed1 256-dim hybrid vectors (`vectors` text + `vectors_visual`). All row access is ACL-filtered by the caller's user.

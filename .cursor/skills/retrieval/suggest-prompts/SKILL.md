@@ -26,12 +26,12 @@ waving`, `goal celebration`, `handshakes`, `mascots`, `scarves`.
 
 ## Request — `GET /api/v1/suggestions`
 
-This call has taken **about 110–117s** and returned **about 2.5 MB** on every run observed
-so far (it's regenerated each time, not cached) — too slow to block a conversation or an
-app's page load on. Start it in the background, keep going with the starter queries above,
-and use the result when it arrives. Call it at most once per session and reuse the saved
-response; only wait on it synchronously if the user explicitly asks for generated
-suggestions right now, and tell them it takes about two minutes.
+This call can take a couple of minutes and returns a large response (it's regenerated
+each time, not cached) — too slow to block a conversation or an app's page load on.
+Start it in the background, keep going with the starter queries above, and use the
+result when it arrives. Call it at most once per session and reuse the saved response;
+only wait on it synchronously if the user explicitly asks for generated suggestions
+right now, and tell them it is slow.
 
 ```bash
 curl -s --max-time 180 "$BACKEND/api/v1/suggestions" -H "Authorization: Bearer $TOKEN" -o /tmp/suggestions.json &

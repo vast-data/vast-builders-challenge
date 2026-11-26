@@ -48,8 +48,8 @@ Show the tracks in `prompts/` and let them pick one. Run the track's `00` contex
 prompt first (it builds nothing), then the demo they chose. Each demo builds its own
 small app with suggested searches, and shows its results in the app, not in files.
 
-Remind them once: web app only. Uploads are disabled, and re-ingest is limited to 30
-seconds and 3 chunks per request, so build on the footage that is already indexed.
+Remind them once: build a web app (or a CLI or script), not a native desktop or mobile app, on the
+footage that is already indexed.
 
 From here they build. Do not keep narrating. Answer what comes up.
 
@@ -58,6 +58,6 @@ From here they build. Do not keep narrating. Answer what comes up.
 1. Go one step at a time. After each step, ask if it worked before moving on.
 2. If a search comes back empty or something fails, run the health check
    (`retrieval-login` and `retrieval-dashboard`). If that is also unhealthy, hand off to
-   `ask-cosmos` instead of troubleshooting further.
-3. Use the provided skills for every platform call. Do not write raw REST calls.
+   `ask-help` instead of troubleshooting further.
+3. Use the provided skills for every platform call. Do not invent endpoints; app code calls only the endpoints the skills document.
 4. For more depth, point them to `BUILD_DAY.md`.

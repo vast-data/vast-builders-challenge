@@ -29,7 +29,7 @@ Prefer the **data VIP** (`S3_ENDPOINT`) unless the user asks for the Query Engin
 ```bash
 mapfile -t TEAM_CONFIGS < <(find /config -maxdepth 1 -type f -name '*.config' | sort)
 (( ${#TEAM_CONFIGS[@]} == 1 )) || { echo "expected exactly one /config/*.config"; exit 1; }
-# Do not `source` on zsh (USERNAME is reserved). Parse keys:
+# Run this block with bash, not zsh. Parse keys (do not `source` the file):
 S3_ENDPOINT=$(grep '^S3_ENDPOINT=' "${TEAM_CONFIGS[0]}" | cut -d= -f2-)
 ACCESS_KEY=$(grep '^ACCESS_KEY=' "${TEAM_CONFIGS[0]}" | cut -d= -f2-)
 SECRET_KEY=$(grep '^SECRET_KEY=' "${TEAM_CONFIGS[0]}" | cut -d= -f2-)
@@ -122,6 +122,18 @@ with session.transaction() as tx:
     rows = batch.to_pylist()
     print(len(rows), rows[0] if rows else "empty")
 ```
+
+To read only some rows, name the columns you need and pass a filter. `query.py` has no
+filter option, so use the SDK directly:
+
+```python
+rows = table.select(columns=["<column_a>", "<column_b>"],
+                    predicate=(table["<column>"] == "<value>")).read_all().to_pylist()
+```
+
+A filter can use `==`, `!=`, `>=`, `<=`, `.isin([...])`, `.between(a, b)`,
+`.contains("text")`, `.startswith("text")` and `.isnull()`. Combine filters with `&` and `|`,
+each part in brackets. A filtered read of a few columns is fast. Remove duplicates in Python.
 
 ## Common checks
 

@@ -16,7 +16,7 @@ for DDL/DML.
 Identity policy still applies: only this team's `VASTDB_BUCKET`. Other buckets → 403.
 
 A deployed hackathon app can use this same SDK and these same patterns from inside its
-pod, with the `VASTDB_*` env vars that `deployment-deploy-app-no-registry`'s Secret
+pod, with the `VASTDB_*` env vars that `deploy-app-no-registry`'s Secret
 provides — see that skill for the Secret and connection snippet.
 
 ## Endpoint (data VIP only)
@@ -25,7 +25,7 @@ provides — see that skill for the Secret and connection snippet.
 mapfile -t TEAM_CONFIGS < <(find /config -maxdepth 1 -type f -name '*.config' | sort)
 (( ${#TEAM_CONFIGS[@]} == 1 )) || { echo "expected exactly one /config/*.config"; exit 1; }
 CFG="${TEAM_CONFIGS[0]}"
-# Do not `source` on zsh (USERNAME is reserved).
+# Run this block with bash, not zsh. Do not `source` the file.
 S3_ENDPOINT=$(grep '^S3_ENDPOINT=' "$CFG" | cut -d= -f2-)
 ACCESS_KEY=$(grep '^ACCESS_KEY=' "$CFG" | cut -d= -f2-)
 SECRET_KEY=$(grep '^SECRET_KEY=' "$CFG" | cut -d= -f2-)
@@ -45,12 +45,13 @@ Never search `team-configs/`, invent endpoints, or print credentials.
 
 - Prefer **new** schema/table names for demos (e.g. `hackathon`, `demo_events`).
 - Do **not** drop or recreate `vss-collection` / `vss-events-collection` unless the user explicitly insists — that breaks VSS search.
+- Do **not** update or delete rows in them either. The one exception is the era setup in [football-eras](../football-eras/SKILL.md): a fixed script that changes only the `location` label on football clips. Run that script as it is; do not write your own update.
 - Stay in **this team's** `VASTDB_BUCKET` only.
 
 ## Prereqs
 
 See [vast-database/README.md](../README.md#prerequisites-python--vastdb) for Python setup
-(the VM has no `pip`/`python`/`vastdb` out of the box). Resolve `$PY` from there before
+(VM images vary — check first rather than assume `pip`/`vastdb` are missing). Resolve `$PY` from there before
 running anything below.
 
 ## Insert (script)
@@ -146,7 +147,7 @@ with session.transaction() as tx:
 
 ## Agent instructions
 
-1. Confirm the target **schema / table** and column schema with the user before creating.
+1. Use the schema, table and columns the prompt names; ask the user only when it names none.
 2. Connect only to **`S3_ENDPOINT` (data VIP)**. Do not use QE for writes.
 3. Never copy `/config/` credentials into the repo.
 4. Refuse casual recreate/drop of `vss-collection` or `vss-events-collection`.

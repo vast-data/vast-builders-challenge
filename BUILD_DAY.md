@@ -13,35 +13,20 @@ when something matters.
 
 ## 2. Skills, Skills, Skills
 
-The core skills are `ingest/` and `retrieval/`, in `.cursor/skills/`. More
+The core skills are in `retrieval/`, under `.cursor/skills/`. More
 skills cover the rest of the deployed stack, if you want to explore. Each skill guides the
 coding agent: the endpoint, the request, the response, and what to do when it fails.
 
 Describe what you want and the coding agent loads the matching skill.
 
 ```
-"re-ingest the warehouse video with a prompt about safety gear"
-"find people near the entrance after 6pm"
-"summarize what happens in the warehouse video"
+"show me what footage is indexed"
+"find the safety car leading the field"
+"summarize what happens in the first ten minutes of the race"
 ```
 
 Skills read what they need from environment variables, so nothing should ask you for a
 password or a URL. If something isn't working, ask for help.
-
-### Re-ingest: running it again
-
-> ⚠️ **IMPORTANT:** Avoid re-ingesting large chunks of video (i.e. hours of video). Start with a few clips and read the captions first.
-
-The video is already indexed. Re-ingest means running it through the pipeline
-again with a different prompt, so the descriptions match what you're building.
-
-| Skill | Use it to |
-|-------|-----------|
-| `reingest-videos` | Re-run a whole indexed video with a new prompt or metadata |
-| `reingest-chunk` | Re-run one specific chunk, found by filename, scene, date, or camera |
-
-**Re-ingesting takes a few minutes.** Every segment is described, embedded, and detected
-again before it becomes searchable. Ask Cursor to confirm before you go looking.
 
 ### Find what's missing
 
@@ -51,14 +36,11 @@ Counts of people. What someone is carrying. Whether a vehicle stopped.
 If it comes back empty, that's not a broken search. It means the ingestion prompt never
 asked about it, so nothing was written down.
 
-### Re-ingest with your prompt
+### Build on what's indexed
 
-```
-re-ingest <that video> with a prompt that describes <what your app needs>
-```
-
-Cursor loads `reingest-videos`, shows you what it's about to re-run, and asks for the
-prompt. Give it a few minutes, then run the same search again. This time it matches.
+The video is already indexed, and the descriptions are fixed: re-ingest is not available
+on this stack, and uploading new video is not recommended. Read a few captions for your footage before you settle on
+an idea, and pick one the captions can support.
 
 > 💡 That gap, between what you searched for and what the prompt asked about, is the thing
 > to keep in mind. Everything you can build depends on what the descriptions say.
@@ -81,23 +63,16 @@ build on top. A small app, agent, or a dashboard. A clear use case.
 
 ### What video you have
 
-The videos come from a few kinds of real-world footage:
+The videos come from two kinds of real-world footage:
 
 - Formula racing footage (F1 Academy and Formula E)
 - Bundesliga football footage
-- Dashcam driving footage of vehicles and pedestrians interacting at intersections and
-  crossings
-- Overhead, multi-camera highway footage tracking vehicle movement along a stretch of
-  interstate
-- A private neighborhood camera capturing car movement
-
-<!-- TODO: two more source types pending confirmation before adding here. -->
 
 Explore what's actually indexed in the [Video Search & Summary UI](README.md#2-video-search--summary-ui-demo-app).
 
-Your index is already full and searchable. For the full list of folders, camera IDs, use
-cases, and worked example queries, see the
-[Architecture Reference's Video corpus section](ARCHITECTURE_REFERENCE.md#video-corpus-already-indexed).
+Your index is already full and searchable. For the two demo tracks (Formula racing,
+camera_id f1-01; Bundesliga, camera_id bundesliga-01) see "What to know about the footage"
+in [prompts/README.md](prompts/README.md).
 
 ### The loop
 
@@ -110,11 +85,8 @@ cases, and worked example queries, see the
 
 <p align="center"><img src="docs/images/view-deployed-app.png" alt="The App button on the VAST workshop home page, for viewing your deployed app" width="90%"></p>
 
-If the existing captions cover what you need, you never have to think about prompts. If they
-don't, re-ingest the footage with a different prompt.
-
-> 💡 **Start with a few clips.** Read the captions that come back before you re-ingest anything
-> at volume.
+Check that the existing captions cover what your idea needs before you build on them. If
+they don't, adjust the idea: the footage can't be re-indexed on this stack.
 
 ### LLM access
 
@@ -145,7 +117,7 @@ Then ask Cursor:
 check that everything is working
 ```
 
-If it fails, or you need more help, run `/ask-cosmos`. The skill writes a note with the relevant details but **does not post it**. Copy it and share it with an organizer, and we'll debug it together.
+If it fails, or you need more help, run `/ask-help`. The skill writes a note with the relevant details but **does not post it**. Copy it and share it with an organizer, and we'll debug it together.
 
 ### Architecture Reference
 

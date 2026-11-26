@@ -39,20 +39,20 @@ A separate **events / prompt-suggester** function runs on a schedule and feeds U
 
 ![VAST DataEngine pipeline](docs/hackathon/vss-pipeline.png)
 
-**VAST DataEngine (pipeline’s tab)** — view the pipeline’s flow, logs, and traces. Treat the graph as given for the challenge (re-ingest / upload via skills; don’t rebuild functions or redeploy the pipeline).
+**VAST DataEngine (pipeline’s tab)** — view the pipeline’s flow, logs, and traces. Treat the graph as given for the challenge (don’t rebuild functions or redeploy the pipeline).
 
 | Function | What it does |
 |----------|--------------|
-| **Segmenter** | Splits each uploaded chunk into short fixed-length clips and writes them to the segments bucket. **Builders challenge:** organizers already used the Segmenter to pre-ingest your corpus. During the challenge you **only re-ingest** data that is already segmented and indexed — the Segmenter is **not** in the path you run. |
+| **Segmenter** | Splits each uploaded chunk into short fixed-length clips and writes them to the segments bucket. **Builders challenge:** organizers already used the Segmenter to pre-ingest your corpus. You do not run it during the challenge. |
 | **Detector** | Runs **YOLO11** on each segment and records object classes, counts, and bbox sidecars. |
 | **Reasoner** | Calls **NVIDIA Cosmos3-Reason** to write a searchable natural-language description of the segment. |
 | **Embedder** | Calls **NVIDIA Cosmos Embed1** to build text (and visual) vectors for hybrid search. |
 | **VastDB writer** | Persists embeddings, reasoning, detections, and metadata as a row in your VastDB collection. |
 | **Events (prompt-suggester)** | Periodically scans recent segments and writes suggested search prompts / key events for the UI. |
 
-**Builders challenge note:** your archive is **pre-ingested** (Segmenter already ran). Your live path is **re-ingest** on existing segments: Detector → Reasoner → Embedder → VastDB writer (via `ingest/reingest-videos` / `reingest-chunk`). You don’t upload new chunks or invoke the Segmenter for this challenge.
+**Builders challenge note:** your archive is **pre-ingested** (the whole pipeline already ran). You don’t need to upload new chunks or invoke any of these functions for this challenge, and re-ingest is not available.
 
-You don’t need to redeploy this graph for the hackathon — treat it as the engine behind search, dashboard, suggestions, and re-ingest.
+You don’t need to redeploy this graph for the hackathon — treat it as the engine behind search, dashboard, and suggestions.
 
 ---
 
@@ -63,7 +63,7 @@ For your team you already have:
 
 | Piece | What it is |
 |-------|------------|
-| **Ingest pipeline** | DataEngine graph that pre-ingested your corpus (Segmenter already ran). During the challenge you **re-ingest** existing segments (detect → reason → embed → write VastDB) |
+| **Ingest pipeline** | DataEngine graph that pre-ingested your corpus (detect → reason → embed → write VastDB). It is not run during the challenge |
 | **UI** | Web app at your `INGRESS_URL` (frontend + backend) |
 | **S3 buckets** | Chunks + segments for uploads |
 | **VastDB** | Indexed segments, embeddings, detections, reasoning text |
@@ -74,7 +74,7 @@ For your team you already have:
 cd /vss-blueprint
 ```
 
-Cloning the Blueprint is **not a requirement**. The live UI, APIs, and Cursor skills in this repo are enough for a strong demo — search, filters, re-ingest, upload, dashboards, mini-apps on top of the archive. Do not rebuild or redeploy DataEngine ingest functions for the challenge.
+Cloning the Blueprint is **not a requirement**. The live UI, APIs, and Cursor skills in this repo are enough for a strong demo — search, filters, dashboards, mini-apps on top of the archive. Do not rebuild or redeploy DataEngine ingest functions for the challenge.
 
 Open the UI, log in with your team user, and open **this skills repo** in **Cursor**. Skills are how you move fast against the live APIs.
 
@@ -82,129 +82,67 @@ Open the UI, log in with your team user, and open **this skills repo** in **Curs
 
 ## Video corpus (already indexed)
 
-Your team’s VSS archive is **pre-ingested** from the lab corpus below. Explore and **re-ingest** with the prompt/metadata you need (`ingest/reingest-videos` / `reingest-chunk`).
+Your team’s VSS archive is **pre-ingested** with the two sources below. Explore it and build on what is indexed; re-ingest is not available, and uploading is not recommended (short clips only).
 
-**One pipeline, one VastDB index, several operational lenses.** Only `scenario` + metadata change. Anchor demo line:
+**One pipeline, one VastDB index, two sources.** Leave out `camera_id` to search both at once, or set it to stay inside one.
 
-> *Show me every clip, from any camera in any site, where a person is close to a moving vehicle*
+Search filters: `camera_id`, `capture_type`, `location`, plus **object class** from detections. A filter value that does not exist returns zero results with no error, so check values with `retrieval/list-metadata` when a filtered search comes back empty.
 
-That should pull I-24 highway traffic, Toronto live driving, neighborhood / SF street cams, and warehouse forklift / aisle views into one result set.
+### Sources
 
-Search UI filters (upload metadata): `camera_id`, `capture_type`, `location`, plus **object class** from detections. Corpus tables below also list a Category column for demo grouping — that is not a filter field. For re-ingest, set analysis `scenario` (presets: `surveillance`, `traffic`, `live_driving`, `retail`, `warehouse`, `egocentric`, `sports`, `nhl`, `general`).
+| Source | `camera_id` | `location` | `capture_type` | What’s indexed |
+|--------|-------------|------------|----------------|----------------|
+| Formula racing | `f1-01` | `england` | `racing` | **2** races: `f1-academy_race` (about 46 min) and `formula-e_race` (about 50 min) |
+| Bundesliga football | `bundesliga-01` | `germany`, or an era such as `germany-2017-26` once the era setup has run | `football` | More than **30** full matches, about 100 min each, seasons 1970-71 to 2026-27 |
 
-### Use-case groups
+Everything is stored as 30 s chunks of 5 s segments. Each segment has a caption, embeddings and object detections.
 
-#### 1. Highway Multi-Cam Traffic — `traffic`
+#### 1. Formula racing — `f1-01`
 
-| Source | Location | Category | `camera_id` | What’s indexed |
-|--------|----------|----------|-------------|----------------|
-| I-24 / 3D traffic | nashville | Traffic | `i24_cam-1` | ~51 multi-cam highway clips (`scene*_p*c*`) |
+Two races share one `camera_id`, so tell them apart by file name (`f1-academy_race` or `formula-e_race`). Story: race moments, incidents, sponsors on screen. Try: *“safety car leading the field”*, *“cars in the pit lane”*, *“aerial view of the circuit”*, *“driver in the car.”*
 
-Multiple cameras per scene. Story: congestion, lane behavior, vehicle–vehicle interaction on a highway corridor. Try: *“truck changing lanes”*, *“dense traffic on the highway”*, *“vehicle braking hard.”*
+#### 2. Bundesliga football — `bundesliga-01`
 
-#### 2. Live Driving & Road Safety — `live_driving` / `streets`
+Every match shares one `camera_id`, so identify a match by file name (season, competition and teams). Story: the same moment across decades of matches. Try: *“player celebrates a goal”*, *“goalkeeper makes a save”*, *“referee shows a red card”*, *“fans waving scarves in the stands.”*
 
-| Source | Location | Category | `camera_id` | What’s indexed |
-|--------|----------|----------|-------------|----------------|
-| PIE drives | toronto | Streets | `pie_cam-3` | **6** long drive sets (`set01` … `set06`) |
+### Where to start
 
-Forward-facing / on-road drives. Story: road-scene understanding and driving safety. Try: *“pedestrian near the curb”*, *“intersection with turning traffic”*, *“vehicle ahead braking.”*
-
-#### 3. Neighborhood Street Surveillance — `surveillance` / `streets`
-
-| Source | Location | Category | `camera_id` | What’s indexed |
-|--------|----------|----------|-------------|----------------|
-| Neighborhood cars | neighborhood | Streets | `neighborhood_cam-1` | **2** day merges (2026-09-01, 2026-09-02) |
-
-Residential / neighborhood car activity. Story: street-level vehicle events over time. Try: *“car passing in front of houses”*, *“two vehicles close together”*, *“vehicle stopping at the curb.”*
-
-#### 4. SF Street Surveillance — `surveillance` / `streets`
-
-| Source | Location | Category | `camera_id` | What’s indexed |
-|--------|----------|----------|-------------|----------------|
-| SF streets | san_francisco | Streets | `sf_streets_cam-1` … `sf_streets_cam-4` | **4** street cameras (`sf-streets/1` … `4`) — **ingesting soon** |
-
-Fixed San Francisco street cams. Story: urban street activity across multiple viewpoints. Try: *“pedestrians crossing while cars wait”*, *“busy intersection”*, *“same moment from two SF cameras.”*
-
-#### 5. Warehouse Safety & Operations — `warehouse`
-
-| Source | Location | Category | `camera_id` | What’s indexed |
-|--------|----------|----------|-------------|----------------|
-| SDG warehouse RGB | warehouse3 | Warehouse | `sdg_warehouse_cam-2` | ~178 short ceiling / aisle clips |
-
-Industrial **safety & near-miss** search — *“forklift near a person in an aisle”*, *“pallet in a walkway”*, *“person in a restricted zone.”*
-
-#### 6. Indoor / Smart-Space Surveillance — `surveillance` / `crowds`
-
-| Source | Location | Category | `camera_id` | What’s indexed |
-|--------|----------|----------|-------------|----------------|
-| Smart spaces | indoor | Crowds | `smartspace_cam-1` | ~102 indoor / facility camera clips |
-
-Occupancy, people flow, and facility ops. Try: *“person walking through an aisle”*, *“group of people near equipment”*, *“empty corridor.”*
-
-### Cross-group demos (the payoff)
-
-| Query | Hits across groups |
-|-------|--------------------|
-| *“person close to a moving vehicle”* | I-24 (1) + Toronto driving (2) + neighborhood (3) + SF streets (4) + warehouse (5) |
-| *“dense traffic / many vehicles”* | I-24 multi-cam (1) + PIE sets (2) + neighborhood (3) + SF streets (4) |
-| *“person in a warehouse aisle”* | SDG RGB (5) + smartspaces (6) |
-| *“same city, different camera”* | SF: `sf_streets_cam-1` … `sf_streets_cam-4` |
-
-### Recommended demo packs
-
-Don’t try to demo everything at once. Start with a short pack, prove search → filters → UI, then expand.
-
-| Pack | Sources | Story |
-|------|---------|-------|
-| **A — Highway Traffic** | I-24 multi-cam | Corridor traffic |
-| **B — Live Driving** | PIE sets 01–06 | On-road / road-safety |
-| **C — Warehouse Safety** | SDG RGB | Near-miss + aisle ops |
-| **D — Neighborhood Streets** | Neighborhood day 01–02 | Day-scale street vehicles |
-| **E — SF Streets** | SF cams 1–4 | Multi-cam urban streets (**ingesting soon**) |
-| **F — Indoor Smart Spaces** | Smart spaces cams | Facility / indoor crowds |
-
-Start with **Pack A (Highway Traffic)** or **Pack C (Warehouse Safety)** — high-signal — before leaning on the long PIE / Neighborhood day merges. Add **Pack E (SF Streets)** once those cameras are indexed.
+Don’t try to demo everything at once. Pick one source, prove search → filters → UI, then expand. The ready-made prompts in [`prompts/`](prompts/) cover both: `f1-vss/` for Formula racing and `dfl-archive/` for Bundesliga.
 
 ### Example queries
 
-- *“Truck changing lanes on the highway”* → `i24_cam-1`
-- *“Pedestrian near the road while driving”* → `pie_cam-3`
-- *“Car passing houses on a residential street”* → `neighborhood_cam-1`
-- *“Busy San Francisco intersection”* → `sf_streets_cam-1` … `sf_streets_cam-4`
-- *“Forklift approaching a person in a warehouse aisle”* → `sdg_warehouse_cam-2`
-- *“Person walking through an indoor corridor”* → `smartspace_cam-1`
-- *“Person close to a moving vehicle”* → cross-pack (A + B + C + D + E)
+- *“Safety car leading the field”* → `f1-01`
+- *“Grandstand crowd”* → `f1-01`
+- *“Players shake hands before kickoff”* → `bundesliga-01`
+- *“Teams walk out with mascots”* → `bundesliga-01`
 
 ---
 
 ## Suggested playbook
 
-Write full prompts in Cursor: name what you want, point at your team config, and say what to build. A solid loop is **re-ingest → confirm indexing → ship a thin app on search / videos / dashboard**.
+Write full prompts in Cursor: name what you want, point at your team config, and say what to build. A solid loop is **check what is indexed → ship a thin app on search / videos / dashboard**.
 
 ### Example prompts (adapt to your use case)
 
-**1. Re-ingest and verify indexing**
+**1. Check what is indexed**
 
-> Re-ingest an indexed video from Pack A (Highway Traffic) or Pack C (Warehouse Safety) in my team environment (credentials in `/config/<my-team>.config`).
-> Let me pick the target (e.g. an I-24 scene clip or an SDG warehouse clip), prompt/metadata behavior, and chunk count.  
-> Wait until re-ingest finishes, then run basic sanity checks on counts and pipeline health.  
-> *(Cursor will use skills: `ingest/reingest-videos`, `retrieval/dashboard`, `retrieval/login`)*
+> Show me what is indexed in my team environment (credentials in `/config/<my-team>.config`): videos, clip counts, and the filter values I can search on.
+> Then run basic sanity checks on counts and pipeline health.
+> *(Cursor will use skills: `retrieval/dashboard`, `retrieval/list-metadata`, `retrieval/login`)*
 
-**2. Cross-camera “person near vehicle” board**
+**2. Race moments board**
 
-> Build a small webpage that answers: *“person close to a moving vehicle”* across my archive.  
-> Group hits by `location` / `camera_id` (Nashville I-24, Toronto driving, neighborhood streets, SF streets when indexed, warehouse).  
-> For each hit, show a triptych: one clip **before**, the **event**, and one clip **after** (~5 seconds each).  
-> Deploy it **on Kubernetes** (not local) to my team namespace without Docker build/push — Ingress path `/app` on my team host.  
+> Build a small webpage that searches both races for a moment I type, for example *“safety car leading the field”*.
+> Group hits by race (from the file name) and play each hit’s 5 second clip.
+> Deploy it **on Kubernetes** (not local) to my team namespace without Docker build/push — Ingress path `/app` on my team host.
 > *(Cursor will use skills: `retrieval/login`, `retrieval/search`, `retrieval/videos`, `retrieval/list-metadata`, `deployment/deploy-app-no-registry`)*
 
-**3. Warehouse safety ops board**
+**3. Football moments across seasons**
 
-> Build a standalone page for Pack C: histogram of top detected objects + a list of near-miss style hits  
-> (forklift near a person, tight aisle, person in a walkway). For each object, show a small bounding-box crop from a real segment.  
-> Filter by `camera_id` / `location`. Deploy on K8s at `/app` (or save under `tools/` while iterating), then report the top findings.  
-> *(Cursor will use skills: `retrieval/login`, `retrieval/dashboard`, `retrieval/search`, `retrieval/videos`, `deployment/deploy-app-no-registry`)*
+> Build a standalone page that searches the Bundesliga matches for a moment, for example *“player celebrates a goal”*,
+> and groups the hits by season, oldest first. Each hit shows the match and plays its clip.
+> Filter by `camera_id`. Deploy on K8s at `/app` (or save under `tools/` while iterating), then report the top findings.
+> *(Cursor will use skills: `retrieval/login`, `retrieval/search`, `retrieval/videos`, `deployment/deploy-app-no-registry`)*
 
 ---
 

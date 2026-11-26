@@ -18,7 +18,10 @@ The backend authenticates the user against VMS and returns a JWT. VMS host + ten
 mapfile -t TEAM_CONFIGS < <(find /config -maxdepth 1 -type f -name '*.config' | sort)
 (( ${#TEAM_CONFIGS[@]} == 1 )) || { echo "expected exactly one /config/*.config"; exit 1; }
 TEAM_CONFIG="${TEAM_CONFIGS[0]}"
-set -a && source "$TEAM_CONFIG" && set +a
+# Read each value by name; do not `source` the file.
+INGRESS_URL=$(grep '^INGRESS_URL=' "$TEAM_CONFIG" | cut -d= -f2-)
+USERNAME=$(grep '^USERNAME=' "$TEAM_CONFIG" | cut -d= -f2-)
+PASSWORD=$(grep '^PASSWORD=' "$TEAM_CONFIG" | cut -d= -f2-)
 BACKEND="$INGRESS_URL"
 TOKEN=$(curl -s -X POST "$BACKEND/api/v1/auth/login" \
   -H "Content-Type: application/json" \
@@ -48,6 +51,6 @@ curl -s "$BACKEND/api/v1/auth/me" -H "Authorization: Bearer $TOKEN"   # {usernam
 
 ## Agent instructions
 
-1. Ask for/confirm username + password; never log the password or token.
+1. Read username and password from `/config/<team>.config` with the block above. Never ask the user for them; never log the password or token.
 2. Cache the token for the session; re-login on 401.
 3. Then proceed to `search`, `dashboard`, `videos`, `agent-qa`, etc.

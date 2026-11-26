@@ -10,6 +10,7 @@ Connect to the **data VIP** from `S3_ENDPOINT` in `/config/<team>.config`. Reads
 |-------|---------|
 | [vastdb-read](vastdb-read/SKILL.md) | Catalog + select (data VIP / optional QE) |
 | [vastdb-write](vastdb-write/SKILL.md) | Create schema/table + insert (data VIP only) |
+| [football-eras](football-eras/SKILL.md) | One-time setup for the Bundesliga track: label football clips with their era so searches can be limited to one era |
 
 ## Prerequisites: Python + vastdb
 

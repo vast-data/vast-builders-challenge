@@ -1,160 +1,80 @@
 ---
 name: ingest-upload-video
 description: >-
-  DISABLED for now, do not use. Upload a new video file into VSS via POST /api/v1/videos/upload (multipart form
-  proxied to the team's chunks S3 bucket). Use when the user wants to add a local
-  or downloaded .mp4/.mov/.webm/.avi/.mkv through the backend upload endpoint — not
-  for re-processing already-indexed archive content (use ingest/reingest-videos or
-  reingest-chunk for that).
+  Not recommended: uploads run on GPUs every team shares. Uploads one short clip (30 s or
+  less) of the user's own footage with upload_clip.py. Use only when the user asks to add
+  footage that is not in the archive.
 ---
 
-> **Disabled for now.** Uploading new videos is turned off to conserve infrastructure
-> resources. Do not run this skill. To change what is indexed, use
-> `ingest/reingest-videos` or `ingest/reingest-chunk` on content that is already indexed.
+> **Not recommended.** Uploading works, but every uploaded second is captioned, embedded
+> and scanned for objects on GPUs shared by every team. Build on the footage that is
+> already indexed where you can. When the user does need their own footage, keep it to a
+> short clip and use the script below.
 
-# Ingest: upload video (vss2)
+# Ingest: upload a short clip (vss2)
 
-Uploads a video through the retrieval backend. The backend writes the object into
-the team's chunks bucket with ingest metadata; the DataEngine pipeline then runs
-segmenter → detector → reasoner → embedder → VastDB writer.
+## Before uploading, ask the user
 
-This is **new content**. For an already-indexed video/stream or Explore card, use
-`ingest/reingest-videos` / `ingest/reingest-chunk` instead.
+1. Which video file.
+2. The start and end time of the part to upload (30 s or less).
+3. Optionally, a prompt that says what the captions should describe.
+4. Confirmation. Say once that uploads use GPU time shared by every team.
 
-## Non-negotiable interaction
+## Defaults, and what the user can change
 
-Do not upload until the user has provided or chosen:
+| | Default | If the user asks for more |
+|---|---|---|
+| Clip length | 30 s | `--yes` |
+| One at a time | an upload waits for the one before it | nothing to change |
+| Team allowance | 10 uploads or 5 minutes of video in total | the script asks to confirm; run again with `--yes` |
+| Camera label | `team-upload` | fixed |
 
-1. the video file path(s) to upload;
-2. visibility (public vs private + optional allowed users);
-3. analysis prompt mode (default / scenario preset / custom prompt);
-4. optional metadata: `camera_id`, `capture_type`, `location`, tags;
-5. confirmation of the final request.
+## Run it
 
-Use `AskQuestion` for choices. Never guess missing choices. Do not print passwords
-or JWTs.
-
-## Authenticate
-
-Resolve the backend URL and credentials from the single `/config/*.config` team
-file. Do not search the repo's `team-configs/`. If the file is missing or there
-are multiple candidates, ask the user.
+See [vast-database/README.md](../../vast-database/README.md#prerequisites-python--vastdb)
+for Python setup and resolve `$PY` first. `ffmpeg` must be on the VM. The script reads
+the team config from `/config/<team>.config`.
 
 ```bash
-mapfile -t TEAM_CONFIGS < <(find /config -maxdepth 1 -type f -name '*.config' | sort)
-(( ${#TEAM_CONFIGS[@]} == 1 )) || { echo "expected exactly one /config/*.config"; exit 1; }
-TEAM_CONFIG="${TEAM_CONFIGS[0]}"
-set -a && source "$TEAM_CONFIG" && set +a
-BACKEND="$INGRESS_URL"
+PY=~/vastdb-venv/bin/python; [ -x "$PY" ] || PY=python3
+UP=.cursor/skills/ingest/upload-video/upload_clip.py
 
-TOKEN=$(curl -s -X POST "$BACKEND/api/v1/auth/login" \
-  -H "Content-Type: application/json" \
-  -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+"$PY" $UP upload /path/to/video.mp4 --start 12 --end 32 \
+  --prompt "Describe what the players are doing, in one short sentence."
+"$PY" $UP status                       # this team's uploads, and anything still in progress
+"$PY" $UP remove "s3://<bucket>/<key>"  # the original_video printed after an upload
 ```
 
-Pass `Authorization: Bearer $TOKEN` on the upload call. Prefer
-`retrieval/login` if a token is already cached for the session.
+## What the script does
 
-## Limits and allowed types
+1. **Cuts the part you named** and uploads only that, never the whole file.
+2. **Gives the clip its own camera label.** Uploaded clips stay out of the F1 and football
+   results, and a search limited to that label is fast because it covers only those clips.
+3. **Takes one upload at a time.** If an earlier upload is still being processed, it says
+   so and waits for it before sending the next one.
+4. **Waits until the clip is searchable,** then prints its `original_video`, how to search
+   it and how to remove it.
 
-Read live limits from config (do not hardcode):
+Exit codes: `0` done, `2` a default was exceeded and nothing was uploaded (read the
+message; ask the user), `3` still being processed after the wait (check `status` later).
 
-```bash
-curl -s "$BACKEND/api/v1/config" -H "Authorization: Bearer $TOKEN"
-# use app.max_upload_size_mb (and note allowed extensions from backend)
-```
+## After the upload
 
-Typical defaults: max size from `max_upload_size_mb` (often 25–100 MB), extensions
-`.mp4`, `.mov`, `.webm`, `.avi`, `.mkv`. Reject files that fail size/extension
-checks before calling the API. Upload **one file per request**; for multiple
-files, loop sequentially and report per-file success/failure.
-
-## Discover ingest field options
-
-```bash
-curl -s "$BACKEND/api/v1/metadata/ingest-config"
-```
-
-Use returned `capture_types`, `analysis_scenarios`, and
-`custom_prompt_max_length` (800) when asking for metadata / prompt choices.
-Blank optional fields are fine — omit them from the form rather than sending
-empty strings when the user skipped them.
-
-## Confirm, then upload
-
-Show a short confirmation: filename, size, `is_public`, scenario/custom prompt,
-camera/capture/location/tags. Start only after explicit confirmation.
-
-`POST /api/v1/videos/upload` — `multipart/form-data`:
-
-| Field | Required | Notes |
-|-------|----------|--------|
-| `file` | yes | The video file |
-| `is_public` | no | Default API `false`; UI usually sends `true` unless user chose private |
-| `tags` | no | Comma-separated |
-| `allowed_users` | no | Comma-separated; uploader is always included server-side |
-| `scenario` | no | Preset key from `ingest-config`; ignored if `custom_prompt` is set |
-| `custom_prompt` | no | Overrides scenario; max 800 chars |
-| `camera_id` | no | Free text |
-| `capture_type` | no | Value from `ingest-config` capture types |
-| `location` | no | Free text |
-
-```bash
-VIDEO_PATH="/path/to/video.mp4"
-
-curl -s -X POST "$BACKEND/api/v1/videos/upload" \
-  -H "Authorization: Bearer $TOKEN" \
-  -F "file=@${VIDEO_PATH}" \
-  -F "is_public=true" \
-  -F "tags=demo,test" \
-  -F "scenario=general" \
-  -F "camera_id=cam-1" \
-  -F "capture_type=traffic" \
-  -F "location=bangkok"
-```
-
-Private example — set `is_public=false` and optionally `-F "allowed_users=alice,bob"`.
-Custom prompt — omit `scenario` and pass `-F "custom_prompt=..."`.
-
-Success response shape:
+Search the clip with its label:
 
 ```json
-{
-  "success": true,
-  "object_key": "<username>/<timestamp>_<filename>",
-  "message": "Video uploaded successfully and will be processed shortly"
-}
+{"camera_id": "team-upload"}
 ```
 
-Save `object_key`. On 400/413, report the API `detail` (bad extension or oversize).
-On 401, re-login and retry once.
-
-## After upload
-
-Processing is asynchronous (pipeline). Tell the user indexing usually takes on the
-order of tens of seconds to a few minutes depending on length and cluster load.
-
-Optionally verify with:
-
-```bash
-curl -s "$BACKEND/api/v1/dashboard/stats?scope=mine" \
-  -H "Authorization: Bearer $TOKEN"
-
-curl -s "$BACKEND/api/v1/videos/explore?scope=mine&limit=20&offset=0" \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-Look for a new/recent parent whose filename or upload time matches. Do not claim
-searchability until explore/dashboard shows the indexed clips.
+Removing an upload deletes its file, its clips and its records. Only the uploader can
+remove it.
 
 ## Agent instructions
 
-1. Prefer this skill for **new file upload** via the backend; prefer re-ingest
-   skills for content already in the team archive.
-2. Always auth first; never log credentials or the bearer token.
-3. Collect file path + visibility + prompt mode + optional metadata; confirm
-   before `curl -F`.
-4. One multipart request per file; surface each `object_key` or error.
-5. After success, point the user at dashboard/explore (or offer to poll) rather
-   than inventing pipeline status.
+1. Do not suggest uploading. Use this skill only when the user asks to add their own footage.
+2. Ask for the file, the start and end time, and confirmation.
+3. Run `upload_clip.py`; do not call the upload route yourself and do not loop over a folder.
+4. If the script exits with `2`, tell the user what it said and ask before running again
+   with `--yes`.
+5. Report the `original_video` it prints, and how to search and remove the clip.
+6. Never print credentials or the bearer token.

@@ -96,7 +96,7 @@ Everything under "pre-built, already running" was done for you.
 - **Serverless LLM inference** from Weights & Biases by Coreweave, available for your own app's logic when you build further.
 
 ### If something looks off
-Run the health check in the [Reference](BUILD_DAY.md#reference) section of the Build Day guide. If it fails, or you need more help, run `/ask-cosmos`. It writes up a note for you: copy it and share it with an organizer, and we'll debug it together.
+Run the health check in the [Reference](BUILD_DAY.md#reference) section of the Build Day guide. If it fails, or you need more help, run `/ask-help`. It writes up a note for you: copy it and share it with an organizer, and we'll debug it together.
 
 ## 5. Keep going
 

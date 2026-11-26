@@ -21,7 +21,7 @@ Steps
 2. On the VM, list one race's chunks with retrieval-videos (explore) and fetch each 30 s chunk file; run the checks there (step 3), not in the app. Nothing is uploaded or re-ingested.
 3. Run ffmpeg blackdetect (d=0.5), freezedetect (n=-60dB, d=2) and silencedetect (d=2, noise=-50dB) on the VM, not in the deployed app (it has no ffmpeg). Ignore a freeze that overlaps a black segment. Severity: high for black or freeze, medium for silence. Write the events into qc_events; the app reads them from there.
 4. The app lists every issue with its time and severity, and plays the affected segment clip through the proxy.
-5. Self-test button: on the VM, make a local test copy of one chunk with a 3 s black frame injected, run the checks on it and on an untouched copy, and write or show both results so the app can display them side by side.
+5. Self-test: a VM script makes a local test copy of one chunk with a 3 s black frame injected, runs the checks on it and on an untouched copy, and writes one row per copy and issue to f1demo.qc_selftest (copy, issue, start_ts, end_ts, checked_at), with one row of issue "none" for a clean copy. The app's "Self-test" panel reads that table and shows the two copies side by side.
 6. Suggested searches for finding a moment to check: "grandstand crowd", "aerial view of the circuit", "driver in the car", "cars in the pit lane".
 
 Done when the 3 s black frame is detected in the test copy and the untouched copy reports nothing.

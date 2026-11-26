@@ -17,14 +17,10 @@ Hybrid search (caption text + visual embeddings) over `vss-collection`, ACL-filt
 curl -s -X POST "$BACKEND/api/v1/search" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{
-    "query": "forklift near loading dock",
+    "query": "safety car leading the field",
     "top_k": 15,
-    "llm_top_n": 3,
-    "min_similarity": 0.3,
-    "tags": ["warehouse"],
-    "time_filter": "24h",
-    "metadata_filters": {"location": "Warehouse A", "camera_id": "CAM-001"},
-    "include_public": true
+    "metadata_filters": {"camera_id": "f1-01"},
+    "system_prompt": "Reply with only the word OK."
   }'
 ```
 
@@ -45,27 +41,34 @@ curl -s -X POST "$BACKEND/api/v1/search" \
 ## Filtering by score
 
 `min_similarity` does not filter the response — apply the cutoff yourself on each
-result's `similarity_score`. Start at about 0.35 and make it adjustable; good hits on
-this footage score roughly 0.35-0.55, and if there is a clear gap in the scores, cut at
-the gap instead. If nothing passes the cutoff, that is a valid answer, not an error:
+result's `similarity_score`. Start at the default the track's context prompt gives (0.30 for
+Formula racing, 0.35 for Bundesliga) and make it adjustable. If nothing passes the cutoff, that is a valid answer, not an error:
 show a clear "no good matches" state. Optionally offer the top few results below the
 cutoff, labelled as weak matches, or let the user lower the cutoff — don't silently
 drop the cutoff to fill the page, and don't present weak hits as good ones.
 
 ## Latency
 
-A search with hits usually takes about 5-10 s and can take about twice that, depending
-on the footage being searched and on load. Most of the time is the model writing
-`llm_synthesis`. A call that takes 15-20 s is not hung; use a client timeout of at
-least 60 s.
+A search with hits can take several seconds, and longer on a large archive or under
+load. Most of that is the model writing `llm_synthesis`. Use a client timeout of at
+least 60 s, and do not treat a slow call as hung.
 
-Asking for a shorter summary with `system_prompt` usually makes it faster, but not on
-every call:
+A UI that calls search should never show a blank page or a bare spinner for that long:
+draw the results layout as a loading skeleton right away, with a short neutral status
+line (no numbers), and swap it for real results when they arrive. Have the page call your app's own search route in the background (the
+browser never calls VSS directly), do not hold up drawing the page for a search, and
+handle the empty and error cases. No timers, countdowns or durations in the UI.
 
-    "system_prompt": "Answer in one short sentence. No lists."
+If the app only needs the hits (a list, a timeline, a clip picker), tell the model to
+write almost nothing and ignore `llm_synthesis`:
 
-The hits returned are the same; only the summary is shorter. Lowering `llm_top_n` does
-not speed it up.
+    "system_prompt": "Reply with only the word OK."
+
+The hits are the same and the call is faster. An exact-match filter that selects fewer
+clips also shortens a search: the Bundesliga era label is one (see
+`vast-database-football-eras`).
+
+Lowering `llm_top_n` does not speed it up.
 
 ## Building filters (do it client-side)
 
@@ -90,4 +93,4 @@ Play a hit with `retrieval/videos` (`/videos/stream?source=…`). For a grounded
 1. Ensure a JWT.
 2. Split the user's ask into `query` + `time_filter` + `metadata_filters` + `tags`; verify filter fields via `list-metadata`.
 3. Filter weak hits yourself on `similarity_score` (see "Filtering by score"), not via `min_similarity`; use `chunk_results` for "which video", `results` for "which exact moment".
-4. Cite `llm_synthesis.response` when present; otherwise summarize `chunk_results`.
+4. Cite `llm_synthesis.response` when you asked for a summary. If you sent the one-word `system_prompt`, ignore `llm_synthesis` and summarize `chunk_results` yourself.

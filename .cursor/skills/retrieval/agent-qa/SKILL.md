@@ -30,7 +30,7 @@ Response: `{ answer, tool_used ("search_hybrid"|"video_segments"), evidence }`.
 **Always pass `original_video` to `/agent/ask`** — it answers questions about one video.
 For a question across the archive, use `/agent/search-and-answer` below. Do not call
 `/agent/ask` without `original_video`: on this stack it returns 500 ("Internal Server
-Error") every time, after 12-22 s.
+Error") every time.
 
 ## Search + answer with filters — `POST /api/v1/agent/search-and-answer`
 
@@ -39,17 +39,17 @@ Same body as `POST /search` (`retrieval/search`: `tags`, `time_filter`, `metadat
 ```bash
 curl -s -X POST "$BACKEND/api/v1/agent/search-and-answer" \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"query":"forklift incidents","time_filter":"7d","metadata_filters":{"location":"Warehouse A"},"top_k":10}'
+  -d '{"query":"what happens during the safety car period","metadata_filters":{"camera_id":"f1-01"},"top_k":10}'
 ```
 
 `evidence` includes `chunks[]` (`original_video`, `similarity_score`, `best_match_start_sec/end_sec`, `preview_source`), timings, and `llm_synthesis`.
 
-`search-and-answer` has the same latency profile as `/search` and can take about twice
-as long — see [retrieval/search's Latency section](../search/SKILL.md#latency).
+`search-and-answer` is slower than `/search`; the same waiting rules apply — see
+[retrieval/search's Latency section](../search/SKILL.md#latency).
 
 ## Agent tools — `GET/POST /api/v1/tools/*`
 
-Composable building blocks (same auth): `POST tools/search`, `GET tools/segments?original_video=`, `GET tools/segment?source=`, `GET tools/detections?source=`, `POST tools/synthesize`. Use these to gather evidence when you orchestrate multi-step reasoning yourself. For browsing what's indexed, use `GET /api/v1/videos/explore` (`retrieval/videos`) instead of `tools/explore` — the latter returns 500 on the live backend and has been followed by ~20s of 502s on every endpoint.
+Composable building blocks (same auth): `POST tools/search`, `GET tools/segments?original_video=`, `GET tools/segment?source=`, `GET tools/detections?source=`, `POST tools/synthesize`. Use these to gather evidence when you orchestrate multi-step reasoning yourself. For browsing what's indexed, use `GET /api/v1/videos/explore` (`retrieval/videos`) instead of `tools/explore` — the latter returns 500 on the live backend, and other endpoints can fail for a short while afterwards.
 
 ## Choosing an endpoint
 

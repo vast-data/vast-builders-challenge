@@ -1,8 +1,8 @@
 ---
-name: ask-cosmos
+name: ask-help
 description: >-
   Help a team get unstuck by preparing a note worth reading, with the relevant details
-  and team name, ready to paste into a post on the workshop community. Never posts anywhere.
+  and team name, ready to share with an organizer. Never sends or posts anything.
   Runs the health check first so the answer includes whether the stack is healthy. Always
   produces a note, whether or not an actual error was found. If nothing's obviously broken,
   it still gives whoever comes to help the context to start from.
@@ -10,7 +10,7 @@ description: >-
   to get help.
 ---
 
-# Ask Cosmos
+# Ask for help
 
 Most blockers are one of three things: the stack is unhealthy, a filter value doesn't exist,
 or the prompt never described what they're searching for. Check those before asking anyone.
@@ -27,9 +27,9 @@ problem and an organizer needs to see it. Say so plainly rather than suggesting 
 
 - **Search returns nothing.** Confirm the filter values exist with `retrieval/list-metadata`
   before assuming the search is broken. Then consider whether the ingestion prompt ever
-  described what they're looking for; if not, that's `ingest/reingest-videos`, not a bug.
-- **Something is still indexing.** Re-ingest takes minutes. Check the dashboard rather than
-  retrying the search.
+  described what they're looking for; if not, that's a gap in the captions, not a bug.
+  Re-ingest is not available on this stack, so adjust the search or the idea.
+- **Something is still indexing.** Check the dashboard rather than retrying the search.
 
 ## Write the note
 
@@ -80,15 +80,14 @@ reply. A note that just says "search isn't working," with no error and no health
 
 ## Hand it over
 
-This skill prepares the note; it does not post it anywhere. Give the team the one block
-of text above to copy, and point them to
-[community.vastdata.com/c/workshop/27](https://community.vastdata.com/c/workshop/27) to post it.
-Tell them plainly that they have to post it themselves, manually. Nothing has been sent.
+This skill prepares the note; it does not send it anywhere. Give the team the one block
+of text above to copy, and tell them to share it with an organizer.
+Tell them plainly that they have to share it themselves. Nothing has been sent.
 Apply the redaction in "Keep it safe to share" first.
 
-Then ask them to confirm they've posted it before going any further. You can't check
+Then ask them to confirm they've shared it before going any further. You can't check
 this yourself, so take their word. Don't continue the walkthrough, retry fixes, or move
-on to the next step until they say it's posted.
+on to the next step until they say it's shared.
 
 ## Agent instructions
 
@@ -102,5 +101,5 @@ on to the next step until they say it's posted.
    <what>`, so someone reading it has enough to start from.
 5. Never post, send, or call any external service with the note. Show the draft and let
    the team decide where it goes.
-6. After handing over the note, stop and ask: "Have you posted this on Cosmos yet?"
+6. After handing over the note, stop and ask: "Have you shared this with an organizer yet?"
    Wait for a yes before proceeding with anything else.

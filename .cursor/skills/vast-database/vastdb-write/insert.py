@@ -9,7 +9,7 @@ import os
 import sys
 from pathlib import Path
 
-PROTECTED = frozenset({"vss-collection", "vss-prompts-events"})
+PROTECTED = frozenset({"vss-collection", "vss-events-collection", "vss-prompts-events"})
 
 
 def _team_config() -> Path:

@@ -25,16 +25,15 @@ Internal columns (`pk`, `vectors`, `vectors_visual`, `source`, `reasoning_conten
 ## Field values / autocomplete — `GET /api/v1/metadata/values` (JWT)
 
 ```bash
-curl -s "$BACKEND/api/v1/metadata/values?field=location&prefix=War&limit=50" -H "Authorization: Bearer $TOKEN"
-# { "field":"location", "values":["Warehouse A","Warehouse B"], "count":2 }
+curl -s "$BACKEND/api/v1/metadata/values?field=location&limit=50" -H "Authorization: Bearer $TOKEN"
+# { "field":"location", "values":["england","germany"], "count":2 }
 ```
 
 Params: `field` (required, must be a filterable column), `prefix` (optional), `limit` (default 50). Non-filterable/excluded fields → 400.
 
 ## Ingest field catalog — `GET /api/v1/metadata/ingest-config` (public, no auth)
 
-Canonical options for ingest metadata (scenarios, capture types, labels). Use this
-to populate metadata overrides in `ingest/reingest-videos`.
+Canonical options for ingest metadata (scenarios, capture types, labels).
 
 ```bash
 curl -s "$BACKEND/api/v1/metadata/ingest-config"
